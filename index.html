@@ -95,6 +95,28 @@
                 version references.
               </p>
 
+              <form class="project-filters" id="project-filters" aria-label="Project search and filters">
+                <label>
+                  Search
+                  <input
+                    type="search"
+                    id="project-search"
+                    placeholder="PO, customer name, quote #, reference #, salesperson..."
+                  />
+                </label>
+
+                <label>
+                  Status
+                  <select id="project-status-filter">
+                    <option value="">All statuses</option>
+                  </select>
+                </label>
+
+                <button type="button" id="clear-project-filters" class="secondary-btn">Clear filters</button>
+              </form>
+
+              <p id="project-results-meta" class="project-results-meta" aria-live="polite"></p>
+
               <div class="projects-table-wrapper">
                 <table class="projects-table" aria-label="Grouped ongoing projects">
                   <thead>
