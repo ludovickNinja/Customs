@@ -2,6 +2,7 @@ const versionsContainer = document.getElementById('versions-container');
 const versionTemplate = document.getElementById('version-template');
 const addVersionButton = document.getElementById('add-version');
 const quoteForm = document.getElementById('quote-form');
+const accountInput = quoteForm?.querySelector('input[name="account"]');
 const modeButtons = [...document.querySelectorAll('.mode-btn')];
 const pageButtons = [...document.querySelectorAll('.side-nav-btn')];
 const projectsTableBody = document.getElementById('projects-table-body');
@@ -18,10 +19,25 @@ const discussionThread = document.getElementById('discussion-thread');
 const discussionForm = document.getElementById('discussion-form');
 const discussionInput = document.getElementById('discussion-input');
 const backToProjectsButton = document.getElementById('back-to-projects');
+const adminActions = document.getElementById('admin-actions');
+const adminRenderingsForm = document.getElementById('admin-renderings-form');
+const adminPricingForm = document.getElementById('admin-pricing-form');
+const adminRenderingsList = document.getElementById('admin-renderings-list');
+const adminRenderingUpload = document.getElementById('admin-rendering-upload');
+const adminPricingTotal = document.getElementById('admin-pricing-total');
+const adminPricingBreakdown = document.getElementById('admin-pricing-breakdown');
+const adminPricingTimeline = document.getElementById('admin-pricing-timeline');
 
+const accountNames = {
+  account1: 'Account 1',
+  account2: 'Account 2',
+  admin: 'Admin',
+};
+
+let currentMode = 'account1';
 let versionCount = 0;
-let nextQuoteNumber = 80004;
-let nextReferenceNumber = 50008;
+let nextQuoteNumber = 80010;
+let nextReferenceNumber = 50100;
 let activeVersionContext = null;
 
 const projectFilterState = {
@@ -32,6 +48,7 @@ const projectFilterState = {
 const ongoingProjects = [
   {
     quoteNumber: 'Q80001',
+    account: 'account1',
     customerRequest: 'PO-6604 / SOL-ALPHA / Crown Canada',
     salesPersonName: 'Emma Campbell',
     updatedAt: '2026-03-12',
@@ -40,6 +57,7 @@ const ongoingProjects = [
         referenceNumber: 'R50001',
         versionLabel: 'Version 1',
         status: 'CAD review pending',
+        adminRenderings: [],
         designBrief: {
           styleSku: 'SOL-ALPHA-01',
           metal: '14K White Gold',
@@ -53,56 +71,22 @@ const ongoingProjects = [
           unitBreakdown: 'Gold + labor: $1,980, setting labor: $480',
           timeline: 'Estimate valid for 7 days. Delivery target: 6 business days.',
         },
-        discussion: [
-          {
-            author: 'Customer',
-            message: 'Can we reduce the cathedral shoulder slightly before final quote?',
-            timestamp: '2026-03-12 09:10',
-          },
-          {
-            author: 'Design Team',
-            message: 'Yes, we can lower the shoulder by 0.3mm and update renderings today.',
-            timestamp: '2026-03-12 09:43',
-          },
-        ],
-      },
-      {
-        referenceNumber: 'R50002',
-        versionLabel: 'Version 2',
-        status: 'Awaiting center stone details',
-        designBrief: {
-          styleSku: 'SOL-ALPHA-02',
-          metal: '18K Yellow Gold',
-          size: '7',
-          stoneDescription: 'Oval center stone TBD, pave shoulders',
-          instructions: 'Prepare two basket options once center dimensions are provided.',
-          files: ['side_profile_sketch.png'],
-        },
-        pricing: {
-          estimatedTotal: '$2,180 (pending center stone)',
-          unitBreakdown: 'Mounting estimate only: $2,180',
-          timeline: 'Final quote pending center stone spec confirmation.',
-        },
-        discussion: [
-          {
-            author: 'Design Team',
-            message: 'Please share the exact stone dimensions to lock in the final quote.',
-            timestamp: '2026-03-12 11:10',
-          },
-        ],
+        discussion: [],
       },
     ],
   },
   {
     quoteNumber: 'Q80002',
+    account: 'account2',
     customerRequest: 'PO-7788 / HALO-V2 / Montclair Bridal',
     salesPersonName: 'Noah Tremblay',
     updatedAt: '2026-03-13',
     references: [
       {
-        referenceNumber: 'R50003',
+        referenceNumber: 'R50002',
         versionLabel: 'Version 1',
         status: 'Rendering in progress',
+        adminRenderings: ['halo_v2_preview_admin.png'],
         designBrief: {
           styleSku: 'HALO-V2-A',
           metal: 'Platinum',
@@ -118,75 +102,20 @@ const ongoingProjects = [
         },
         discussion: [],
       },
-      {
-        referenceNumber: 'R50004',
-        versionLabel: 'Version 2',
-        status: 'Pricing validation in progress',
-        designBrief: {
-          styleSku: 'HALO-V2-B',
-          metal: 'Platinum',
-          size: '5.5',
-          stoneDescription: 'Same as V1 with hidden gallery stones',
-          instructions: 'Validate surcharge impact for hidden gallery detail.',
-          files: ['gallery_view.jpg'],
-        },
-        pricing: {
-          estimatedTotal: '$3,340',
-          unitBreakdown: 'Base mounting: $3,120 + gallery detailing: $220',
-          timeline: 'Final pricing confirmation pending vendor review.',
-        },
-        discussion: [],
-      },
-      {
-        referenceNumber: 'R50005',
-        versionLabel: 'Version 3',
-        status: 'Sent for internal approval',
-        designBrief: {
-          styleSku: 'HALO-V2-C',
-          metal: '14K Rose Gold',
-          size: '5.75',
-          stoneDescription: 'Slim halo with cathedral shoulders',
-          instructions: 'This is the budget-conscious option requested by client.',
-          files: ['rose_gold_option.png'],
-        },
-        pricing: {
-          estimatedTotal: '$2,640',
-          unitBreakdown: '14K mounting + finishing: $2,640',
-          timeline: 'Ready to release once approvals are complete.',
-        },
-        discussion: [],
-      },
     ],
   },
   {
     quoteNumber: 'Q80003',
+    account: 'account1',
     customerRequest: 'PO-8109 / PD-SIGNATURE / Atelier Linea',
     salesPersonName: 'Sofia Nguyen',
     updatedAt: '2026-03-14',
     references: [
       {
-        referenceNumber: 'R50006',
+        referenceNumber: 'R50003',
         versionLabel: 'Version 1',
-        status: 'Metal confirmation required',
-        designBrief: {
-          styleSku: 'PD-SIGN-01',
-          metal: 'TBD',
-          size: 'N/A',
-          stoneDescription: 'Minimal pendant with flush set stones',
-          instructions: 'Need final metal confirmation between 14K and 18K yellow gold.',
-          files: ['pendant_concept_front.png'],
-        },
-        pricing: {
-          estimatedTotal: '$980 - $1,220',
-          unitBreakdown: 'Range based on final alloy selection',
-          timeline: 'Quote finalizes immediately after metal confirmation.',
-        },
-        discussion: [],
-      },
-      {
-        referenceNumber: 'R50007',
-        versionLabel: 'Version 2',
         status: 'Ready for quote release',
+        adminRenderings: [],
         designBrief: {
           styleSku: 'PD-SIGN-02',
           metal: '18K Yellow Gold',
@@ -206,23 +135,19 @@ const ongoingProjects = [
   },
 ];
 
-const expandedQuotes = new Set([ongoingProjects[0].quoteNumber]);
+const expandedQuotes = new Set(ongoingProjects.slice(0, 1).map((project) => project.quoteNumber));
 
 function updateVersionTitles() {
   const cards = [...versionsContainer.querySelectorAll('.version-card')];
 
   cards.forEach((card, index) => {
-    const title = card.querySelector('.version-title');
-    title.textContent = `Version ${index + 1}`;
-
-    const removeButton = card.querySelector('.remove-btn');
-    removeButton.hidden = cards.length === 1;
+    card.querySelector('.version-title').textContent = `Version ${index + 1}`;
+    card.querySelector('.remove-btn').hidden = cards.length === 1;
   });
 }
 
 function createVersionCard() {
   versionCount += 1;
-
   const fragment = versionTemplate.content.cloneNode(true);
   const card = fragment.querySelector('.version-card');
 
@@ -263,24 +188,26 @@ function focusNextInputOnEnter(event) {
 }
 
 function setMode(mode) {
-  const customerView = document.getElementById('customer-view');
-  const adminView = document.getElementById('admin-view');
-
-  const isCustomerMode = mode === 'customer';
-  customerView.classList.toggle('hidden', !isCustomerMode);
-  adminView.classList.toggle('hidden', isCustomerMode);
+  currentMode = mode;
 
   modeButtons.forEach((button) => {
     button.classList.toggle('active', button.dataset.mode === mode);
   });
+
+  if (accountInput) {
+    accountInput.value = accountNames[mode] || accountNames.account1;
+  }
+
+  if (adminActions) {
+    adminActions.classList.toggle('hidden', mode !== 'admin');
+  }
+
+  renderOngoingProjects();
 }
 
 function setPage(page) {
-  const pages = [...document.querySelectorAll('.customer-page')];
-
-  pages.forEach((pageElement) => {
-    const isActive = pageElement.id === `page-${page}`;
-    pageElement.classList.toggle('active', isActive);
+  [...document.querySelectorAll('.customer-page')].forEach((pageElement) => {
+    pageElement.classList.toggle('active', pageElement.id === `page-${page}`);
   });
 
   pageButtons.forEach((button) => {
@@ -298,7 +225,7 @@ function formatDate(value) {
 }
 
 function getLatestReferenceStatus(project) {
-  return project.references[project.references.length - 1].status;
+  return project.references[project.references.length - 1]?.status || 'No status';
 }
 
 function getDiscussionMarkup(messages) {
@@ -309,7 +236,7 @@ function getDiscussionMarkup(messages) {
   return messages
     .map(
       (item) => `
-      <article class="chat-message ${item.author === 'Customer' ? 'from-customer' : 'from-team'}">
+      <article class="chat-message ${item.author === 'Admin' ? 'from-team' : 'from-customer'}">
         <p class="chat-message-meta">
           <strong>${item.author}</strong>
           <span>${item.timestamp}</span>
@@ -319,6 +246,40 @@ function getDiscussionMarkup(messages) {
     `
     )
     .join('');
+}
+
+function getVisibleProjects() {
+  if (currentMode === 'admin') {
+    return ongoingProjects;
+  }
+
+  return ongoingProjects.filter((project) => project.account === currentMode);
+}
+
+function getProjectByContext() {
+  if (!activeVersionContext) {
+    return {};
+  }
+
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeVersionContext.quoteNumber);
+  const reference = project?.references.find(
+    (candidate) => candidate.referenceNumber === activeVersionContext.referenceNumber
+  );
+
+  return { project, reference };
+}
+
+function renderAdminAssets(reference) {
+  if (!adminRenderingsList) {
+    return;
+  }
+
+  if (!reference || !reference.adminRenderings.length) {
+    adminRenderingsList.innerHTML = '<li>No admin renderings uploaded for this version.</li>';
+    return;
+  }
+
+  adminRenderingsList.innerHTML = reference.adminRenderings.map((file) => `<li>${file}</li>`).join('');
 }
 
 function openVersionDetail(quoteNumber, referenceNumber) {
@@ -334,9 +295,10 @@ function openVersionDetail(quoteNumber, referenceNumber) {
 
   activeVersionContext = { quoteNumber, referenceNumber };
 
-  versionDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
+  versionDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${accountNames[project.account]} • ${project.customerRequest}`;
 
   const briefEntries = [
+    ['Account', accountNames[project.account]],
     ['Style / SKU', reference.designBrief.styleSku || '—'],
     ['Metal', reference.designBrief.metal || '—'],
     ['Size', reference.designBrief.size || '—'],
@@ -359,9 +321,16 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   `;
 
   discussionThread.innerHTML = getDiscussionMarkup(reference.discussion);
+  renderAdminAssets(reference);
+
+  if (currentMode === 'admin') {
+    adminPricingTotal.value = reference.pricing.estimatedTotal;
+    adminPricingBreakdown.value = reference.pricing.unitBreakdown;
+    adminPricingTimeline.value = reference.pricing.timeline;
+  }
+
   setPage('version-detail');
 }
-
 
 function normalizeForSearch(value) {
   return value.toLowerCase().trim();
@@ -372,6 +341,7 @@ function getSearchableTokens(project) {
     project.quoteNumber,
     project.customerRequest,
     project.salesPersonName,
+    accountNames[project.account],
     getLatestReferenceStatus(project),
   ];
 
@@ -391,19 +361,19 @@ function getSearchableTokens(project) {
     .map((token) => token.toString().toLowerCase());
 }
 
-function getUniqueStatuses() {
-  return [...new Set(ongoingProjects.flatMap((project) => project.references.map((reference) => reference.status)))]
+function getUniqueStatuses(projects) {
+  return [...new Set(projects.flatMap((project) => project.references.map((reference) => reference.status)))]
     .filter(Boolean)
     .sort((left, right) => left.localeCompare(right));
 }
 
-function syncStatusFilterOptions() {
+function syncStatusFilterOptions(visibleProjects) {
   if (!projectStatusFilter) {
     return;
   }
 
   const selectedStatus = projectFilterState.status;
-  const statusOptions = getUniqueStatuses();
+  const statusOptions = getUniqueStatuses(visibleProjects);
 
   projectStatusFilter.innerHTML = `
     <option value="">All statuses</option>
@@ -415,8 +385,9 @@ function syncStatusFilterOptions() {
 
 function getFilteredProjects() {
   const normalizedSearch = normalizeForSearch(projectFilterState.search);
+  const visibleProjects = getVisibleProjects();
 
-  return ongoingProjects.filter((project) => {
+  return visibleProjects.filter((project) => {
     const matchesStatus =
       !projectFilterState.status || project.references.some((reference) => reference.status === projectFilterState.status);
 
@@ -455,21 +426,22 @@ function renderOngoingProjects() {
     return;
   }
 
-  syncStatusFilterOptions();
+  const visibleProjects = getVisibleProjects();
+  syncStatusFilterOptions(visibleProjects);
 
-  if (ongoingProjects.length === 0) {
+  if (!visibleProjects.length) {
     projectsTableBody.innerHTML =
-      '<tr><td class="empty-row" colspan="6">No quote requests have been submitted yet.</td></tr>';
+      '<tr><td class="empty-row" colspan="7">No quote requests have been submitted yet.</td></tr>';
     renderProjectResultsMeta(0, 0);
     return;
   }
 
   const filteredProjects = getFilteredProjects();
-  renderProjectResultsMeta(ongoingProjects.length, filteredProjects.length);
+  renderProjectResultsMeta(visibleProjects.length, filteredProjects.length);
 
   if (!filteredProjects.length) {
     projectsTableBody.innerHTML =
-      '<tr><td class="empty-row" colspan="6">No projects match your current search and filters.</td></tr>';
+      '<tr><td class="empty-row" colspan="7">No projects match your current search and filters.</td></tr>';
     return;
   }
 
@@ -507,6 +479,7 @@ function renderOngoingProjects() {
             >${isExpanded ? '▾' : '▸'}</button>
           </td>
           <td><strong>${project.quoteNumber}</strong></td>
+          <td>${accountNames[project.account]}</td>
           <td>${project.customerRequest}</td>
           <td>${project.salesPersonName}</td>
           <td>${project.references.length}</td>
@@ -514,7 +487,7 @@ function renderOngoingProjects() {
         </tr>
         <tr class="reference-row ${isExpanded ? '' : 'hidden'}" data-reference-group="${project.quoteNumber}">
           <td></td>
-          <td colspan="5">
+          <td colspan="6">
             <div class="reference-group">
               <p><strong>Latest update:</strong> ${formatDate(project.updatedAt)}</p>
               <ul class="reference-list">
@@ -545,6 +518,8 @@ function createProjectFromForm() {
   const requestText = (formData.get('reference') || '').toString().trim() || 'General quote request';
   const salesPersonName = (formData.get('salespersonName') || '').toString().trim() || 'Not provided';
 
+  const projectAccount = currentMode === 'admin' ? 'account1' : currentMode;
+
   const versionCards = [...versionsContainer.querySelectorAll('.version-card')];
   const references = versionCards.map((card, index) => {
     const instructions = card.querySelector('[data-field="instructions"]').value.trim();
@@ -559,6 +534,7 @@ function createProjectFromForm() {
       referenceNumber: getNextReferenceNumber(),
       versionLabel: `Version ${index + 1}`,
       status: instructions || 'Quote details captured',
+      adminRenderings: [],
       designBrief: {
         styleSku,
         metal,
@@ -574,7 +550,7 @@ function createProjectFromForm() {
       },
       discussion: [
         {
-          author: 'Customer',
+          author: currentMode === 'admin' ? 'Admin' : accountNames[projectAccount],
           message: 'New version submitted. Please review and share quote details.',
           timestamp: new Date().toLocaleString(),
         },
@@ -584,6 +560,7 @@ function createProjectFromForm() {
 
   const newProject = {
     quoteNumber: getNextQuoteNumber(),
+    account: projectAccount,
     customerRequest: requestText,
     salesPersonName,
     updatedAt: new Date().toISOString().slice(0, 10),
@@ -595,11 +572,15 @@ function createProjectFromForm() {
   renderOngoingProjects();
 
   quoteForm.reset();
+  if (accountInput) {
+    accountInput.value = accountNames[currentMode];
+  }
+
   versionsContainer.innerHTML = '';
   createVersionCard();
 
   setPage('projects');
-  alert(`Quote ${newProject.quoteNumber} generated with ${references.length} reference(s).`);
+  alert(`Quote ${newProject.quoteNumber} generated for ${accountNames[projectAccount]} with ${references.length} reference(s).`);
 }
 
 addVersionButton.addEventListener('click', createVersionCard);
@@ -656,7 +637,8 @@ projectsTableBody?.addEventListener('click', (event) => {
 discussionForm?.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  if (!activeVersionContext) {
+  const { reference, project } = getProjectByContext();
+  if (!reference || !project) {
     return;
   }
 
@@ -665,23 +647,66 @@ discussionForm?.addEventListener('submit', (event) => {
     return;
   }
 
-  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeVersionContext.quoteNumber);
-  const reference = project?.references.find(
-    (candidate) => candidate.referenceNumber === activeVersionContext.referenceNumber
-  );
-
-  if (!reference) {
-    return;
-  }
-
   reference.discussion.push({
-    author: 'Customer',
+    author: currentMode === 'admin' ? 'Admin' : accountNames[project.account],
     message,
     timestamp: new Date().toLocaleString(),
   });
 
+  project.updatedAt = new Date().toISOString().slice(0, 10);
   discussionInput.value = '';
   discussionThread.innerHTML = getDiscussionMarkup(reference.discussion);
+  renderOngoingProjects();
+});
+
+adminRenderingsForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (currentMode !== 'admin') {
+    return;
+  }
+
+  const { reference, project } = getProjectByContext();
+  if (!reference || !project || !adminRenderingUpload) {
+    return;
+  }
+
+  const files = [...adminRenderingUpload.files].map((file) => file.name);
+  if (!files.length) {
+    return;
+  }
+
+  reference.adminRenderings.push(...files);
+  reference.status = 'Renderings uploaded';
+  project.updatedAt = new Date().toISOString().slice(0, 10);
+  adminRenderingUpload.value = '';
+  renderAdminAssets(reference);
+  renderOngoingProjects();
+});
+
+adminPricingForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (currentMode !== 'admin') {
+    return;
+  }
+
+  const { reference, project } = getProjectByContext();
+  if (!reference || !project) {
+    return;
+  }
+
+  reference.pricing.estimatedTotal = adminPricingTotal.value.trim() || reference.pricing.estimatedTotal;
+  reference.pricing.unitBreakdown = adminPricingBreakdown.value.trim() || reference.pricing.unitBreakdown;
+  reference.pricing.timeline = adminPricingTimeline.value.trim() || reference.pricing.timeline;
+  reference.status = 'Pricing updated by admin';
+  project.updatedAt = new Date().toISOString().slice(0, 10);
+
+  versionPricing.innerHTML = `
+    <p><strong>Estimated Total:</strong> ${reference.pricing.estimatedTotal}</p>
+    <p><strong>Breakdown:</strong> ${reference.pricing.unitBreakdown}</p>
+    <p><strong>Timeline:</strong> ${reference.pricing.timeline}</p>
+  `;
+
+  renderOngoingProjects();
 });
 
 backToProjectsButton?.addEventListener('click', () => {
@@ -718,6 +743,6 @@ clearProjectFiltersButton?.addEventListener('click', () => {
 });
 
 createVersionCard();
-setMode('customer');
+setMode('account1');
 setPage('home');
 renderOngoingProjects();

@@ -10,12 +10,13 @@
     <header class="top-bar">
       <h1>Custom Platform POC</h1>
       <nav class="mode-switch" aria-label="Platform mode switch">
-        <button type="button" class="mode-btn active" data-mode="customer">Customer</button>
+        <button type="button" class="mode-btn active" data-mode="account1">Account 1</button>
+        <button type="button" class="mode-btn" data-mode="account2">Account 2</button>
         <button type="button" class="mode-btn" data-mode="admin">Admin</button>
       </nav>
     </header>
 
-    <main class="layout" data-current-mode="customer">
+    <main class="layout" data-current-mode="account1">
       <section id="customer-view" class="mode-panel">
         <aside class="side-nav" aria-label="Customer pages">
           <button type="button" class="side-nav-btn active" data-page="home">Home</button>
@@ -49,7 +50,7 @@
                       <input
                         type="text"
                         name="account"
-                        placeholder="CROWN CANADA (Head Office)"
+                        readonly
                         required
                       />
                     </label>
@@ -123,6 +124,7 @@
                     <tr>
                       <th scope="col" class="expand-col"></th>
                       <th scope="col">Quote #</th>
+                      <th scope="col">Account</th>
                       <th scope="col">PO# / Reference / Client Name</th>
                       <th scope="col">Sales Person Name</th>
                       <th scope="col">Versions</th>
@@ -183,16 +185,35 @@
         </div>
       </section>
 
-      <section id="admin-view" class="mode-panel hidden">
-        <article class="card">
-          <h2>Admin Side</h2>
-          <p>
-            Admin view placeholder for the proof of concept. This area can later include request
-            triage, assignment, and status management.
-          </p>
-        </article>
-      </section>
     </main>
+
+    <section id="admin-actions" class="admin-actions card hidden">
+      <h3>Admin Project Tools</h3>
+
+      <div class="admin-grid">
+        <form id="admin-renderings-form" class="admin-form-group">
+          <label for="admin-rendering-upload">Upload Renderings</label>
+          <input id="admin-rendering-upload" type="file" multiple accept="image/*,.pdf" />
+          <button type="submit" class="secondary-btn">Attach rendering files</button>
+        </form>
+
+        <form id="admin-pricing-form" class="admin-form-group">
+          <label for="admin-pricing-total">Estimated Total</label>
+          <input id="admin-pricing-total" type="text" placeholder="$0.00" />
+
+          <label for="admin-pricing-breakdown">Breakdown</label>
+          <textarea id="admin-pricing-breakdown" rows="2"></textarea>
+
+          <label for="admin-pricing-timeline">Timeline</label>
+          <textarea id="admin-pricing-timeline" rows="2"></textarea>
+
+          <button type="submit" class="secondary-btn">Save pricing</button>
+        </form>
+      </div>
+
+      <h4>Renderings Uploaded by Admin</h4>
+      <ul id="admin-renderings-list" class="file-list"></ul>
+    </section>
 
     <template id="version-template">
       <article class="version-card">
