@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Platform | Customer + Admin POC</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top-bar">
+      <h1>Custom Platform POC</h1>
+      <nav class="mode-switch" aria-label="Platform mode switch">
+        <button type="button" class="mode-btn active" data-mode="customer">Customer</button>
+        <button type="button" class="mode-btn" data-mode="admin">Admin</button>
+      </nav>
+    </header>
+
+    <main class="layout" data-current-mode="customer">
+      <section id="customer-view" class="mode-panel">
+        <aside class="side-nav" aria-label="Customer pages">
+          <button type="button" class="side-nav-btn active" data-page="home">Home</button>
+          <button type="button" class="side-nav-btn" data-page="form">Form</button>
+          <button type="button" class="side-nav-btn" data-page="projects">Ongoing Projects</button>
+        </aside>
+
+        <div class="customer-content">
+          <section id="page-home" class="customer-page active">
+            <article class="card">
+              <h2>Home</h2>
+              <p>
+                Welcome to the customer portal proof of concept. Use the left navigation to create a
+                new request or track ongoing projects.
+              </p>
+            </article>
+          </section>
+
+          <section id="page-form" class="customer-page">
+            <article class="card">
+              <header class="form-header">
+                <h2>Priority Quote Request Form</h2>
+                <p>Please fill out the form below to expedite the quoting process.</p>
+              </header>
+
+              <form id="quote-form" class="quote-form">
+                <section class="card inner-card">
+                  <div class="grid-2">
+                    <label>
+                      Account
+                      <input
+                        type="text"
+                        name="account"
+                        placeholder="CROWN CANADA (Head Office)"
+                        required
+                      />
+                    </label>
+
+                    <label>
+                      PO# / Reference / Client Name <span class="required">*</span>
+                      <input type="text" name="reference" required />
+                    </label>
+
+                    <label>
+                      Salesperson Name <span class="required">*</span>
+                      <input type="text" name="salespersonName" required />
+                    </label>
+
+                    <label>
+                      Salesperson Email <span class="required">*</span>
+                      <input type="email" name="salespersonEmail" required />
+                    </label>
+                  </div>
+                </section>
+
+                <section class="card inner-card">
+                  <div class="card-title-row">
+                    <h3>Reference Details</h3>
+                    <button type="button" id="add-version" class="secondary-btn">Add Version</button>
+                  </div>
+
+                  <div id="versions-container" class="versions-container"></div>
+                </section>
+
+                <div class="submit-row">
+                  <button type="submit" class="primary-btn">Submit Quote Request</button>
+                </div>
+              </form>
+            </article>
+          </section>
+
+          <section id="page-projects" class="customer-page">
+            <article class="card">
+              <h2>Ongoing Projects</h2>
+              <p class="project-intro">
+                Projects are grouped by Quote Number. Expand each quote to view all requested
+                version references.
+              </p>
+
+              <div class="projects-table-wrapper">
+                <table class="projects-table" aria-label="Grouped ongoing projects">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="expand-col"></th>
+                      <th scope="col">Quote #</th>
+                      <th scope="col">PO# / Reference / Client Name</th>
+                      <th scope="col">Sales Person Name</th>
+                      <th scope="col">Versions</th>
+                      <th scope="col">Latest Update</th>
+                    </tr>
+                  </thead>
+                  <tbody id="projects-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section id="page-version-detail" class="customer-page">
+            <article class="card version-detail-page">
+              <header class="version-detail-header">
+                <h2>Version Detail</h2>
+                <button type="button" id="back-to-projects" class="secondary-btn">Back to Ongoing Projects</button>
+              </header>
+
+              <p id="version-detail-meta" class="project-intro"></p>
+
+              <div class="version-detail-layout">
+                <section class="version-brief card inner-card">
+                  <h3>Design Brief</h3>
+                  <dl id="design-brief-fields" class="brief-grid"></dl>
+                  <div>
+                    <h4>Files Provided by Customer</h4>
+                    <ul id="design-brief-files" class="file-list"></ul>
+                  </div>
+                </section>
+
+                <section class="version-right-column">
+                  <article class="card inner-card pricing-card">
+                    <h3>Pricing</h3>
+                    <div id="version-pricing"></div>
+                  </article>
+
+                  <article class="card inner-card discussion-card">
+                    <h3>Discussion</h3>
+                    <div id="discussion-thread" class="discussion-thread" aria-live="polite"></div>
+
+                    <form id="discussion-form" class="discussion-form">
+                      <label for="discussion-input">Request a change</label>
+                      <textarea
+                        id="discussion-input"
+                        name="discussionInput"
+                        rows="3"
+                        placeholder="Type your revision request here..."
+                        required
+                      ></textarea>
+                      <button type="submit" class="primary-btn">Send message</button>
+                    </form>
+                  </article>
+                </section>
+              </div>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section id="admin-view" class="mode-panel hidden">
+        <article class="card">
+          <h2>Admin Side</h2>
+          <p>
+            Admin view placeholder for the proof of concept. This area can later include request
+            triage, assignment, and status management.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <template id="version-template">
+      <article class="version-card">
+        <div class="version-header">
+          <h4 class="version-title"></h4>
+          <button type="button" class="remove-btn">Remove</button>
+        </div>
+
+        <div class="grid-3">
+          <label>
+            Style / SKU (if applicable)
+            <input type="text" data-field="styleSku" />
+          </label>
+
+          <label>
+            Metal <span class="required">*</span>
+            <input type="text" data-field="metal" required />
+          </label>
+
+          <label>
+            Size
+            <input type="text" data-field="size" />
+          </label>
+
+          <label>
+            Stone Dimension &amp; Description
+            <textarea data-field="stoneDescription" rows="4"></textarea>
+          </label>
+
+          <label>
+            Instructions <span class="required">*</span>
+            <textarea data-field="instructions" rows="4" required></textarea>
+          </label>
+
+          <label>
+            Upload Files (images, STL, 3DM)
+            <input type="file" data-field="uploads" accept="image/*,.stl,.3dm" multiple />
+            <small>You can upload multiple images, STL files, and 3DM files.</small>
+          </label>
+        </div>
+
+        <fieldset class="need-to-provide">
+          <legend>Need to Provide:</legend>
+          <label><input type="checkbox" data-field="renderings" /> Renderings</label>
+          <label><input type="checkbox" data-field="viewer3d" /> 3D Viewer</label>
+        </fieldset>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
