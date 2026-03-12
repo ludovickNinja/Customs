@@ -185,35 +185,91 @@
         </div>
       </section>
 
+      <section id="admin-view" class="mode-panel hidden">
+        <article class="card admin-operations-card">
+          <header class="admin-operations-header">
+            <div>
+              <h2>Admin Operations</h2>
+              <p>Monitor requests, upload renderings, answer messages, and publish pricing.</p>
+            </div>
+            <p id="admin-summary-meta" class="admin-summary-meta" aria-live="polite"></p>
+          </header>
+
+          <div class="admin-layout">
+            <section class="card inner-card admin-queue-card">
+              <h3>Request Queue</h3>
+              <p class="project-intro">Select a version to update its status, assets, pricing, and messages.</p>
+              <div class="projects-table-wrapper">
+                <table class="projects-table" aria-label="Admin request queue">
+                  <thead>
+                    <tr>
+                      <th scope="col">Quote</th>
+                      <th scope="col">Reference</th>
+                      <th scope="col">Customer Request</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-queue-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="card inner-card admin-detail-card">
+              <h3>Admin Detail</h3>
+              <p id="admin-detail-meta" class="project-intro">Select a request in the queue.</p>
+
+              <form id="admin-detail-form" class="admin-detail-form">
+                <div class="grid-2">
+                  <label>
+                    Status
+                    <input id="admin-status-input" type="text" required />
+                  </label>
+
+                  <label>
+                    Add Rendering File Name
+                    <input id="admin-rendering-name" type="text" placeholder="e.g. halo_v4_render_front.png" />
+                  </label>
+                </div>
+
+                <label>
+                  Pricing Total
+                  <input id="admin-pricing-total" type="text" placeholder="$0.00" required />
+                </label>
+
+                <label>
+                  Pricing Breakdown
+                  <textarea id="admin-pricing-breakdown" rows="2" required></textarea>
+                </label>
+
+                <label>
+                  Timeline / Notes
+                  <textarea id="admin-pricing-timeline" rows="2" required></textarea>
+                </label>
+
+                <label>
+                  Message to Customer
+                  <textarea
+                    id="admin-message-input"
+                    rows="3"
+                    placeholder="Share an update or ask for missing info."
+                  ></textarea>
+                </label>
+
+                <button type="submit" class="primary-btn">Save admin update</button>
+              </form>
+
+              <h4>Uploaded Renderings</h4>
+              <ul id="admin-renderings-list" class="file-list"></ul>
+
+              <h4>Conversation</h4>
+              <div id="admin-conversation-thread" class="discussion-thread" aria-live="polite"></div>
+            </section>
+          </div>
+        </article>
+      </section>
+
     </main>
-
-    <section id="admin-actions" class="admin-actions card hidden">
-      <h3>Admin Project Tools</h3>
-
-      <div class="admin-grid">
-        <form id="admin-renderings-form" class="admin-form-group">
-          <label for="admin-rendering-upload">Upload Renderings</label>
-          <input id="admin-rendering-upload" type="file" multiple accept="image/*,.pdf" />
-          <button type="submit" class="secondary-btn">Attach rendering files</button>
-        </form>
-
-        <form id="admin-pricing-form" class="admin-form-group">
-          <label for="admin-pricing-total">Estimated Total</label>
-          <input id="admin-pricing-total" type="text" placeholder="$0.00" />
-
-          <label for="admin-pricing-breakdown">Breakdown</label>
-          <textarea id="admin-pricing-breakdown" rows="2"></textarea>
-
-          <label for="admin-pricing-timeline">Timeline</label>
-          <textarea id="admin-pricing-timeline" rows="2"></textarea>
-
-          <button type="submit" class="secondary-btn">Save pricing</button>
-        </form>
-      </div>
-
-      <h4>Renderings Uploaded by Admin</h4>
-      <ul id="admin-renderings-list" class="file-list"></ul>
-    </section>
 
     <template id="version-template">
       <article class="version-card">

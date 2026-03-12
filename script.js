@@ -19,11 +19,17 @@ const discussionThread = document.getElementById('discussion-thread');
 const discussionForm = document.getElementById('discussion-form');
 const discussionInput = document.getElementById('discussion-input');
 const backToProjectsButton = document.getElementById('back-to-projects');
-const adminActions = document.getElementById('admin-actions');
-const adminRenderingsForm = document.getElementById('admin-renderings-form');
-const adminPricingForm = document.getElementById('admin-pricing-form');
+const customerView = document.getElementById('customer-view');
+const adminView = document.getElementById('admin-view');
+const adminQueueBody = document.getElementById('admin-queue-body');
+const adminSummaryMeta = document.getElementById('admin-summary-meta');
+const adminDetailMeta = document.getElementById('admin-detail-meta');
+const adminDetailForm = document.getElementById('admin-detail-form');
+const adminStatusInput = document.getElementById('admin-status-input');
+const adminRenderingName = document.getElementById('admin-rendering-name');
+const adminMessageInput = document.getElementById('admin-message-input');
+const adminConversationThread = document.getElementById('admin-conversation-thread');
 const adminRenderingsList = document.getElementById('admin-renderings-list');
-const adminRenderingUpload = document.getElementById('admin-rendering-upload');
 const adminPricingTotal = document.getElementById('admin-pricing-total');
 const adminPricingBreakdown = document.getElementById('admin-pricing-breakdown');
 const adminPricingTimeline = document.getElementById('admin-pricing-timeline');
@@ -57,7 +63,7 @@ const ongoingProjects = [
         referenceNumber: 'R50001',
         versionLabel: 'Version 1',
         status: 'CAD review pending',
-        adminRenderings: [],
+        adminRenderings: ['solitaire_v1_render_front.png'],
         designBrief: {
           styleSku: 'SOL-ALPHA-01',
           metal: '14K White Gold',
@@ -73,6 +79,26 @@ const ongoingProjects = [
         },
         discussion: [],
       },
+      {
+        referenceNumber: 'R50002',
+        versionLabel: 'Version 2',
+        status: 'Awaiting center stone details',
+        adminRenderings: [],
+        designBrief: {
+          styleSku: 'SOL-ALPHA-02',
+          metal: '14K White Gold',
+          size: '7',
+          stoneDescription: '1.5ct elongated cushion center, hidden halo',
+          instructions: 'Match cathedral shoulders to approved sample while preserving comfort fit.',
+          files: ['solitaire_v2_angle.jpg', 'solitaire_v2_stone_specs.pdf'],
+        },
+        pricing: {
+          estimatedTotal: '$2,780',
+          unitBreakdown: 'Gold + labor: $2,180, setting labor: $600',
+          timeline: 'Pending center stone details from customer to finalize estimate.',
+        },
+        discussion: [],
+      },
     ],
   },
   {
@@ -83,7 +109,7 @@ const ongoingProjects = [
     updatedAt: '2026-03-13',
     references: [
       {
-        referenceNumber: 'R50002',
+        referenceNumber: 'R50003',
         versionLabel: 'Version 1',
         status: 'Rendering in progress',
         adminRenderings: ['halo_v2_preview_admin.png'],
@@ -102,6 +128,46 @@ const ongoingProjects = [
         },
         discussion: [],
       },
+      {
+        referenceNumber: 'R50004',
+        versionLabel: 'Version 2',
+        status: 'Pricing validation in progress',
+        adminRenderings: ['halo_v2_variant_side.png'],
+        designBrief: {
+          styleSku: 'HALO-V2-B',
+          metal: 'Platinum',
+          size: '5.75',
+          stoneDescription: 'Oval halo, pave shoulders, hidden bridge accents',
+          instructions: 'Increase halo clearance for 8x6 oval center while keeping low profile.',
+          files: ['halo_v2_variant.3dm', 'oval_halo_notes.pdf'],
+        },
+        pricing: {
+          estimatedTotal: '$3,360',
+          unitBreakdown: 'Platinum casting: $2,690, labor/polish: $670',
+          timeline: 'Final validation in progress with production team.',
+        },
+        discussion: [],
+      },
+      {
+        referenceNumber: 'R50005',
+        versionLabel: 'Version 3',
+        status: 'Sent for internal approval',
+        adminRenderings: [],
+        designBrief: {
+          styleSku: 'HALO-V2-C',
+          metal: 'Platinum',
+          size: '6',
+          stoneDescription: 'Oval halo with cathedral shoulders and hidden halo',
+          instructions: 'Prepare package for internal approval with alternate shank thicknesses.',
+          files: ['halo_v2_v3_markup.pdf', 'halo_v2_v3_comparison.png'],
+        },
+        pricing: {
+          estimatedTotal: '$3,480',
+          unitBreakdown: 'Platinum casting: $2,760, labor/polish: $720',
+          timeline: 'Awaiting internal sign-off before customer release.',
+        },
+        discussion: [],
+      },
     ],
   },
   {
@@ -112,9 +178,9 @@ const ongoingProjects = [
     updatedAt: '2026-03-14',
     references: [
       {
-        referenceNumber: 'R50003',
+        referenceNumber: 'R50006',
         versionLabel: 'Version 1',
-        status: 'Ready for quote release',
+        status: 'Metal confirmation required',
         adminRenderings: [],
         designBrief: {
           styleSku: 'PD-SIGN-02',
@@ -128,6 +194,124 @@ const ongoingProjects = [
           estimatedTotal: '$1,240',
           unitBreakdown: 'Material: $860, labor + finishing: $380',
           timeline: 'Release package can be sent today.',
+        },
+        discussion: [],
+      },
+      {
+        referenceNumber: 'R50007',
+        versionLabel: 'Version 2',
+        status: 'Ready for quote release',
+        adminRenderings: ['pendant_signature_v2_front.png'],
+        designBrief: {
+          styleSku: 'PD-SIGN-03',
+          metal: '18K Yellow Gold',
+          size: 'N/A',
+          stoneDescription: 'Tapered silhouette with thicker edge profile and brushed center panel',
+          instructions: 'Version approved pending final quote release and timeline confirmation.',
+          files: ['pendant_v3_render.jpg', 'pendant_v3_dimensions.pdf'],
+        },
+        pricing: {
+          estimatedTotal: '$1,360',
+          unitBreakdown: 'Material: $940, labor + finishing: $420',
+          timeline: 'Release package ready to send today.',
+        },
+        discussion: [],
+      },
+    ],
+  },
+  {
+    quoteNumber: 'Q80004',
+    account: 'account2',
+    customerRequest: 'PO-9012 / BEZEL-FLORA / Northlake Fine',
+    salesPersonName: 'Avery Patel',
+    updatedAt: '2026-03-15',
+    references: [
+      {
+        referenceNumber: 'R50008',
+        versionLabel: 'Version 1',
+        status: 'CAD review pending',
+        adminRenderings: ['bezel_flora_v1_top.png'],
+        designBrief: {
+          styleSku: 'BZ-FLORA-01',
+          metal: '14K Rose Gold',
+          size: '6.25',
+          stoneDescription: 'Bezel-set marquise center with floral shoulder motif',
+          instructions: 'Keep low profile for daily wear and preserve petal spacing.',
+          files: ['bezel_flora_v1.3dm', 'flora_inspo_sheet.pdf'],
+        },
+        pricing: {
+          estimatedTotal: '$2,140',
+          unitBreakdown: 'Gold + labor: $1,700, finishing: $440',
+          timeline: 'CAD review in queue for design team.',
+        },
+        discussion: [],
+      },
+      {
+        referenceNumber: 'R50009',
+        versionLabel: 'Version 2',
+        status: 'Ready for quote release',
+        adminRenderings: ['bezel_flora_v2_front.png'],
+        designBrief: {
+          styleSku: 'BZ-FLORA-02',
+          metal: '14K Rose Gold',
+          size: '6.25',
+          stoneDescription: 'Bezel-set marquise center with simplified shoulder petals',
+          instructions: 'Use slimmer bezel wall and lock this version for release.',
+          files: ['bezel_flora_v2_notes.pdf', 'bezel_flora_v2_angles.jpg'],
+        },
+        pricing: {
+          estimatedTotal: '$2,080',
+          unitBreakdown: 'Gold + labor: $1,660, finishing: $420',
+          timeline: 'Quote package can be released today.',
+        },
+        discussion: [],
+      },
+    ],
+  },
+  {
+    quoteNumber: 'Q80005',
+    account: 'account1',
+    customerRequest: 'PO-9321 / OVAL-TRIO / Lucent Studio',
+    salesPersonName: 'Maya Chen',
+    updatedAt: '2026-03-16',
+    references: [
+      {
+        referenceNumber: 'R50010',
+        versionLabel: 'Version 1',
+        status: 'Rendering in progress',
+        adminRenderings: [],
+        designBrief: {
+          styleSku: 'OV-TRIO-01',
+          metal: '18K White Gold',
+          size: '6.5',
+          stoneDescription: 'Oval center with tapered baguette side stones',
+          instructions: 'Maintain flush-fit against wedding band with raised gallery.',
+          files: ['oval_trio_v1.pdf', 'oval_trio_ref.jpg'],
+        },
+        pricing: {
+          estimatedTotal: '$2,980',
+          unitBreakdown: 'Gold + labor: $2,360, setting + finish: $620',
+          timeline: 'Rendering in progress, expected by tomorrow.',
+        },
+        discussion: [],
+      },
+      {
+        referenceNumber: 'R50011',
+        versionLabel: 'Version 2',
+        status: 'Awaiting center stone details',
+        adminRenderings: [],
+        designBrief: {
+          styleSku: 'OV-TRIO-02',
+          metal: '18K White Gold',
+          size: '6.5',
+          stoneDescription: 'Oval center with trapezoid side stones and hidden halo',
+          instructions: 'Hold pricing until final center stone measurements are confirmed.',
+          files: ['oval_trio_v2_notes.pdf', 'oval_trio_v2_comparison.png'],
+        },
+        pricing: {
+          estimatedTotal: '$3,180',
+          unitBreakdown: 'Gold + labor: $2,500, setting + finish: $680',
+          timeline: 'Pending customer-provided center stone specs.',
         },
         discussion: [],
       },
@@ -198,11 +382,19 @@ function setMode(mode) {
     accountInput.value = accountNames[mode] || accountNames.account1;
   }
 
-  if (adminActions) {
-    adminActions.classList.toggle('hidden', mode !== 'admin');
+  if (customerView && adminView) {
+    const isAdminMode = mode === 'admin';
+    customerView.classList.toggle('hidden', isAdminMode);
+    adminView.classList.toggle('hidden', !isAdminMode);
   }
 
   renderOngoingProjects();
+
+  if (mode === 'admin') {
+    renderAdminQueue();
+  } else {
+    setPage('home');
+  }
 }
 
 function setPage(page) {
@@ -324,12 +516,68 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   renderAdminAssets(reference);
 
   if (currentMode === 'admin') {
+    adminStatusInput.value = reference.status;
     adminPricingTotal.value = reference.pricing.estimatedTotal;
     adminPricingBreakdown.value = reference.pricing.unitBreakdown;
     adminPricingTimeline.value = reference.pricing.timeline;
+    adminDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
+    if (adminConversationThread) {
+      adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
+    }
   }
 
   setPage('version-detail');
+}
+
+function getAllReferencesForQueue() {
+  return ongoingProjects.flatMap((project) =>
+    project.references.map((reference) => ({ project, reference }))
+  );
+}
+
+function renderAdminQueue() {
+  if (!adminQueueBody || !adminSummaryMeta) {
+    return;
+  }
+
+  const queueItems = getAllReferencesForQueue();
+  const attentionCount = queueItems.filter(({ reference }) =>
+    ['pending', 'awaiting', 'progress', 'required'].some((token) =>
+      reference.status.toLowerCase().includes(token)
+    )
+  ).length;
+
+  adminSummaryMeta.textContent = `${queueItems.length} active reference(s) • ${attentionCount} needing attention`;
+
+  adminQueueBody.innerHTML = queueItems
+    .map(
+      ({ project, reference }) => `
+        <tr>
+          <td><strong>${project.quoteNumber}</strong></td>
+          <td>
+            <strong>${reference.referenceNumber}</strong>
+            <div class="queue-version-label">${reference.versionLabel}</div>
+          </td>
+          <td>${project.customerRequest}</td>
+          <td><span class="status-chip">${reference.status}</span></td>
+          <td>
+            <button
+              type="button"
+              class="link-btn"
+              data-action="admin-open-reference"
+              data-quote-number="${project.quoteNumber}"
+              data-reference-number="${reference.referenceNumber}"
+            >Open</button>
+          </td>
+        </tr>
+      `
+    )
+    .join('');
+
+  if (currentMode === 'admin' && !activeVersionContext && queueItems.length) {
+    const [firstItem] = queueItems;
+    openVersionDetail(firstItem.project.quoteNumber, firstItem.reference.referenceNumber);
+  }
 }
 
 function normalizeForSearch(value) {
@@ -634,6 +882,21 @@ projectsTableBody?.addEventListener('click', (event) => {
   }
 });
 
+adminQueueBody?.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const adminOpenButton = target.closest('[data-action="admin-open-reference"]');
+  if (adminOpenButton instanceof HTMLButtonElement) {
+    const { quoteNumber, referenceNumber } = adminOpenButton.dataset;
+    if (quoteNumber && referenceNumber) {
+      openVersionDetail(quoteNumber, referenceNumber);
+    }
+  }
+});
+
 discussionForm?.addEventListener('submit', (event) => {
   event.preventDefault();
 
@@ -659,31 +922,7 @@ discussionForm?.addEventListener('submit', (event) => {
   renderOngoingProjects();
 });
 
-adminRenderingsForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (currentMode !== 'admin') {
-    return;
-  }
-
-  const { reference, project } = getProjectByContext();
-  if (!reference || !project || !adminRenderingUpload) {
-    return;
-  }
-
-  const files = [...adminRenderingUpload.files].map((file) => file.name);
-  if (!files.length) {
-    return;
-  }
-
-  reference.adminRenderings.push(...files);
-  reference.status = 'Renderings uploaded';
-  project.updatedAt = new Date().toISOString().slice(0, 10);
-  adminRenderingUpload.value = '';
-  renderAdminAssets(reference);
-  renderOngoingProjects();
-});
-
-adminPricingForm?.addEventListener('submit', (event) => {
+adminDetailForm?.addEventListener('submit', (event) => {
   event.preventDefault();
   if (currentMode !== 'admin') {
     return;
@@ -694,10 +933,31 @@ adminPricingForm?.addEventListener('submit', (event) => {
     return;
   }
 
+  const nextStatus = adminStatusInput.value.trim();
+  if (nextStatus) {
+    reference.status = nextStatus;
+  }
+
+  const renderingName = adminRenderingName.value.trim();
+  if (renderingName) {
+    reference.adminRenderings.push(renderingName);
+    adminRenderingName.value = '';
+  }
+
   reference.pricing.estimatedTotal = adminPricingTotal.value.trim() || reference.pricing.estimatedTotal;
   reference.pricing.unitBreakdown = adminPricingBreakdown.value.trim() || reference.pricing.unitBreakdown;
   reference.pricing.timeline = adminPricingTimeline.value.trim() || reference.pricing.timeline;
-  reference.status = 'Pricing updated by admin';
+
+  const adminMessage = adminMessageInput.value.trim();
+  if (adminMessage) {
+    reference.discussion.push({
+      author: 'Design Team',
+      message: adminMessage,
+      timestamp: new Date().toLocaleString(),
+    });
+    adminMessageInput.value = '';
+  }
+
   project.updatedAt = new Date().toISOString().slice(0, 10);
 
   versionPricing.innerHTML = `
@@ -707,6 +967,11 @@ adminPricingForm?.addEventListener('submit', (event) => {
   `;
 
   renderOngoingProjects();
+  renderAdminQueue();
+  renderAdminAssets(reference);
+  if (adminConversationThread) {
+    adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
+  }
 });
 
 backToProjectsButton?.addEventListener('click', () => {
@@ -746,3 +1011,4 @@ createVersionCard();
 setMode('account1');
 setPage('home');
 renderOngoingProjects();
+renderAdminQueue();
