@@ -162,7 +162,8 @@ legend {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   margin-top: 6px;
   border: 1px solid #9ca3af;
@@ -256,6 +257,30 @@ small {
 .project-intro {
   margin: 8px 0 16px;
   color: var(--muted);
+}
+
+
+.project-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.project-filters label {
+  display: block;
+}
+
+.project-filters input,
+.project-filters select {
+  width: 100%;
+}
+
+.project-results-meta {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .projects-table-wrapper {
@@ -496,5 +521,11 @@ small {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+}
+
+@media (max-width: 980px) {
+  .project-filters {
+    grid-template-columns: 1fr;
   }
 }

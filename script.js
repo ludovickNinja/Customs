@@ -5,6 +5,11 @@ const quoteForm = document.getElementById('quote-form');
 const modeButtons = [...document.querySelectorAll('.mode-btn')];
 const pageButtons = [...document.querySelectorAll('.side-nav-btn')];
 const projectsTableBody = document.getElementById('projects-table-body');
+const projectFiltersForm = document.getElementById('project-filters');
+const projectSearchInput = document.getElementById('project-search');
+const projectStatusFilter = document.getElementById('project-status-filter');
+const clearProjectFiltersButton = document.getElementById('clear-project-filters');
+const projectResultsMeta = document.getElementById('project-results-meta');
 const versionDetailMeta = document.getElementById('version-detail-meta');
 const designBriefFields = document.getElementById('design-brief-fields');
 const designBriefFiles = document.getElementById('design-brief-files');
@@ -18,6 +23,11 @@ let versionCount = 0;
 let nextQuoteNumber = 80004;
 let nextReferenceNumber = 50008;
 let activeVersionContext = null;
+
+const projectFilterState = {
+  search: '',
+  status: '',
+};
 
 const ongoingProjects = [
   {
@@ -352,18 +362,118 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   setPage('version-detail');
 }
 
+
+function normalizeForSearch(value) {
+  return value.toLowerCase().trim();
+}
+
+function getSearchableTokens(project) {
+  const quoteTokens = [
+    project.quoteNumber,
+    project.customerRequest,
+    project.salesPersonName,
+    getLatestReferenceStatus(project),
+  ];
+
+  const referenceTokens = project.references.flatMap((reference) => [
+    reference.referenceNumber,
+    reference.versionLabel,
+    reference.status,
+    reference.designBrief.styleSku,
+    reference.designBrief.metal,
+    reference.designBrief.size,
+    reference.designBrief.stoneDescription,
+    reference.designBrief.instructions,
+  ]);
+
+  return [...quoteTokens, ...referenceTokens]
+    .filter(Boolean)
+    .map((token) => token.toString().toLowerCase());
+}
+
+function getUniqueStatuses() {
+  return [...new Set(ongoingProjects.flatMap((project) => project.references.map((reference) => reference.status)))]
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function syncStatusFilterOptions() {
+  if (!projectStatusFilter) {
+    return;
+  }
+
+  const selectedStatus = projectFilterState.status;
+  const statusOptions = getUniqueStatuses();
+
+  projectStatusFilter.innerHTML = `
+    <option value="">All statuses</option>
+    ${statusOptions.map((status) => `<option value="${status}">${status}</option>`).join('')}
+  `;
+
+  projectStatusFilter.value = selectedStatus;
+}
+
+function getFilteredProjects() {
+  const normalizedSearch = normalizeForSearch(projectFilterState.search);
+
+  return ongoingProjects.filter((project) => {
+    const matchesStatus =
+      !projectFilterState.status || project.references.some((reference) => reference.status === projectFilterState.status);
+
+    if (!matchesStatus) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return getSearchableTokens(project).some((token) => token.includes(normalizedSearch));
+  });
+}
+
+function renderProjectResultsMeta(totalCount, filteredCount) {
+  if (!projectResultsMeta) {
+    return;
+  }
+
+  if (totalCount === 0) {
+    projectResultsMeta.textContent = 'No quote requests have been submitted yet.';
+    return;
+  }
+
+  if (filteredCount === totalCount) {
+    projectResultsMeta.textContent = `Showing all ${totalCount} project(s).`;
+    return;
+  }
+
+  projectResultsMeta.textContent = `Showing ${filteredCount} of ${totalCount} project(s).`;
+}
+
 function renderOngoingProjects() {
   if (!projectsTableBody) {
     return;
   }
 
+  syncStatusFilterOptions();
+
   if (ongoingProjects.length === 0) {
     projectsTableBody.innerHTML =
       '<tr><td class="empty-row" colspan="6">No quote requests have been submitted yet.</td></tr>';
+    renderProjectResultsMeta(0, 0);
     return;
   }
 
-  projectsTableBody.innerHTML = ongoingProjects
+  const filteredProjects = getFilteredProjects();
+  renderProjectResultsMeta(ongoingProjects.length, filteredProjects.length);
+
+  if (!filteredProjects.length) {
+    projectsTableBody.innerHTML =
+      '<tr><td class="empty-row" colspan="6">No projects match your current search and filters.</td></tr>';
+    return;
+  }
+
+  projectsTableBody.innerHTML = filteredProjects
     .map((project) => {
       const isExpanded = expandedQuotes.has(project.quoteNumber);
       const referencesMarkup = project.references
@@ -576,6 +686,35 @@ discussionForm?.addEventListener('submit', (event) => {
 
 backToProjectsButton?.addEventListener('click', () => {
   setPage('projects');
+});
+
+projectFiltersForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+
+projectSearchInput?.addEventListener('input', () => {
+  projectFilterState.search = projectSearchInput.value;
+  renderOngoingProjects();
+});
+
+projectStatusFilter?.addEventListener('change', () => {
+  projectFilterState.status = projectStatusFilter.value;
+  renderOngoingProjects();
+});
+
+clearProjectFiltersButton?.addEventListener('click', () => {
+  projectFilterState.search = '';
+  projectFilterState.status = '';
+
+  if (projectSearchInput) {
+    projectSearchInput.value = '';
+  }
+
+  if (projectStatusFilter) {
+    projectStatusFilter.value = '';
+  }
+
+  renderOngoingProjects();
 });
 
 createVersionCard();
