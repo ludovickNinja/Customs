@@ -62,10 +62,15 @@ body {
   padding: 0 16px 40px;
 }
 
-.mode-panel.hidden,
 .customer-page {
   display: none;
 }
+
+
+.hidden {
+  display: none !important;
+}
+
 
 .customer-page.active {
   display: block;
@@ -477,6 +482,23 @@ small {
   width: fit-content;
 }
 
+
+.admin-actions {
+  max-width: 1180px;
+  margin: 0 auto 24px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-form-group {
+  display: grid;
+  gap: 8px;
+}
+
 @media (max-width: 900px) {
   #customer-view {
     grid-template-columns: 1fr;
@@ -492,6 +514,10 @@ small {
   }
 
   .version-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grid {
     grid-template-columns: 1fr;
   }
 }
