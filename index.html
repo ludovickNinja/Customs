@@ -13,6 +13,7 @@
         <button type="button" class="mode-btn active" data-mode="account1">Account 1</button>
         <button type="button" class="mode-btn" data-mode="account2">Account 2</button>
         <button type="button" class="mode-btn" data-mode="admin">Admin</button>
+        <button type="button" class="mode-btn" data-mode="factory">Factory</button>
       </nav>
     </header>
 
@@ -266,6 +267,53 @@
               <div id="admin-conversation-thread" class="discussion-thread" aria-live="polite"></div>
             </section>
           </div>
+        </article>
+      </section>
+
+      <section id="factory-view" class="mode-panel hidden">
+        <article class="card factory-dashboard-card">
+          <header class="factory-dashboard-header">
+            <div>
+              <h2>Factory Dashboard</h2>
+              <p>Daily custom request queue for reviewing active quote requests and production readiness.</p>
+            </div>
+          </header>
+
+          <section class="card inner-card factory-queue-card">
+            <div class="factory-controls-row">
+              <h3>Custom Requests</h3>
+
+              <form id="factory-filters" class="factory-filters" aria-label="Factory queue filters">
+                <label>
+                  Search Custom Request
+                  <input type="search" id="factory-search" placeholder="Enter custom request text" />
+                </label>
+
+                <label>
+                  Status
+                  <select id="factory-status-filter">
+                    <option value="">All statuses</option>
+                  </select>
+                </label>
+              </form>
+            </div>
+
+            <div class="projects-table-wrapper">
+              <table class="projects-table" aria-label="Factory custom request queue">
+                <thead>
+                  <tr>
+                    <th scope="col">Quote #</th>
+                    <th scope="col">Date Ordered</th>
+                    <th scope="col">Custom Request</th>
+                    <th scope="col">Sales Person</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Last Update</th>
+                  </tr>
+                </thead>
+                <tbody id="factory-queue-body"></tbody>
+              </table>
+            </div>
+          </section>
         </article>
       </section>
 
