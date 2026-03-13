@@ -38,6 +38,16 @@ const factoryQueueBody = document.getElementById('factory-queue-body');
 const factoryFiltersForm = document.getElementById('factory-filters');
 const factorySearchInput = document.getElementById('factory-search');
 const factoryStatusFilter = document.getElementById('factory-status-filter');
+const factoryDetailMeta = document.getElementById('factory-detail-meta');
+const factoryDetailForm = document.getElementById('factory-detail-form');
+const factoryGoldWeightInput = document.getElementById('factory-gold-weight');
+const factoryTotalPriceInput = document.getElementById('factory-total-price');
+const factoryFinishedMeasurementsInput = document.getElementById('factory-finished-measurements');
+const factorySpecSheetInput = document.getElementById('factory-spec-sheet');
+const factoryViewerLinkInput = document.getElementById('factory-viewer-link');
+const factoryFiveAnglesRenderInput = document.getElementById('factory-five-angles-render');
+const factoryDiamondBreakdownBody = document.getElementById('factory-diamond-breakdown-body');
+const factoryAddDiamondRowButton = document.getElementById('factory-add-diamond-row');
 
 const accountNames = {
   account1: 'Account 1',
@@ -51,6 +61,7 @@ let versionCount = 0;
 let nextQuoteNumber = 80010;
 let nextReferenceNumber = 50100;
 let activeVersionContext = null;
+let activeFactoryContext = null;
 
 const projectFilterState = {
   search: '',
@@ -330,6 +341,33 @@ const ongoingProjects = [
   },
 ];
 
+function getDefaultFactoryDetails() {
+  return {
+    goldWeight: '',
+    totalPrice: '',
+    finishedMeasurementsCad: '',
+    specSheet: '',
+    viewerLink: '',
+    fiveAnglesRender: '',
+    diamondBreakdown: [
+      { quantity: '', shape: '', measurements: '', quality: '', tcw: '', cost: '' },
+    ],
+  };
+}
+
+function ensureFactoryDetails(reference) {
+  if (!reference.factoryDetails) {
+    reference.factoryDetails = getDefaultFactoryDetails();
+    return;
+  }
+
+  if (!Array.isArray(reference.factoryDetails.diamondBreakdown) || !reference.factoryDetails.diamondBreakdown.length) {
+    reference.factoryDetails.diamondBreakdown = [
+      { quantity: '', shape: '', measurements: '', quality: '', tcw: '', cost: '' },
+    ];
+  }
+}
+
 const expandedQuotes = new Set(ongoingProjects.slice(0, 1).map((project) => project.quoteNumber));
 
 function updateVersionTitles() {
@@ -596,12 +634,11 @@ function renderAdminQueue() {
 }
 
 
-function getVisibleFactoryProjects() {
+function getVisibleFactoryReferences() {
   const normalizedSearch = normalizeForSearch(factoryFilterState.search);
 
-  return ongoingProjects.filter((project) => {
-    const latestStatus = getLatestReferenceStatus(project);
-    const matchesStatus = !factoryFilterState.status || latestStatus === factoryFilterState.status;
+  return getAllReferencesForQueue().filter(({ project, reference }) => {
+    const matchesStatus = !factoryFilterState.status || reference.status === factoryFilterState.status;
 
     if (!matchesStatus) {
       return false;
@@ -611,7 +648,14 @@ function getVisibleFactoryProjects() {
       return true;
     }
 
-    return [project.quoteNumber, project.customerRequest, project.salesPersonName, latestStatus]
+    return [
+      project.quoteNumber,
+      reference.referenceNumber,
+      reference.versionLabel,
+      project.customerRequest,
+      project.salesPersonName,
+      reference.status,
+    ]
       .filter(Boolean)
       .map((token) => token.toString().toLowerCase())
       .some((token) => token.includes(normalizedSearch));
@@ -631,34 +675,97 @@ function syncFactoryStatusFilterOptions() {
   factoryStatusFilter.value = factoryFilterState.status;
 }
 
+function renderFactoryDiamondBreakdownRows(rows) {
+  if (!factoryDiamondBreakdownBody) {
+    return;
+  }
+
+  factoryDiamondBreakdownBody.innerHTML = rows
+    .map(
+      (row, index) => `
+        <tr>
+          <td><input type="text" data-diamond-field="quantity" data-index="${index}" value="${row.quantity || ''}" required /></td>
+          <td><input type="text" data-diamond-field="shape" data-index="${index}" value="${row.shape || ''}" required /></td>
+          <td><input type="text" data-diamond-field="measurements" data-index="${index}" value="${row.measurements || ''}" required /></td>
+          <td><input type="text" data-diamond-field="quality" data-index="${index}" value="${row.quality || ''}" required /></td>
+          <td><input type="text" data-diamond-field="tcw" data-index="${index}" value="${row.tcw || ''}" required /></td>
+          <td><input type="text" data-diamond-field="cost" data-index="${index}" value="${row.cost || ''}" required /></td>
+        </tr>
+      `
+    )
+    .join('');
+}
+
+function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === quoteNumber);
+  const reference = project?.references.find((candidate) => candidate.referenceNumber === referenceNumber);
+
+  if (!project || !reference) {
+    return;
+  }
+
+  ensureFactoryDetails(reference);
+  const details = reference.factoryDetails;
+
+  activeFactoryContext = { quoteNumber, referenceNumber };
+
+  if (factoryDetailMeta) {
+    factoryDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
+  }
+
+  if (factoryGoldWeightInput) factoryGoldWeightInput.value = details.goldWeight || '';
+  if (factoryTotalPriceInput) factoryTotalPriceInput.value = details.totalPrice || '';
+  if (factoryFinishedMeasurementsInput) factoryFinishedMeasurementsInput.value = details.finishedMeasurementsCad || '';
+  if (factorySpecSheetInput) factorySpecSheetInput.value = details.specSheet || '';
+  if (factoryViewerLinkInput) factoryViewerLinkInput.value = details.viewerLink || '';
+  if (factoryFiveAnglesRenderInput) factoryFiveAnglesRenderInput.value = details.fiveAnglesRender || '';
+
+  renderFactoryDiamondBreakdownRows(details.diamondBreakdown);
+}
+
 function renderFactoryQueue() {
   if (!factoryQueueBody) {
     return;
   }
 
   syncFactoryStatusFilterOptions();
-  const visibleProjects = getVisibleFactoryProjects();
+  const visibleReferences = getVisibleFactoryReferences();
 
-  if (!visibleProjects.length) {
+  if (!visibleReferences.length) {
     factoryQueueBody.innerHTML =
-      '<tr><td class="empty-row" colspan="6">No custom requests match your current filters.</td></tr>';
+      '<tr><td class="empty-row" colspan="8">No custom requests match your current filters.</td></tr>';
     return;
   }
 
-  factoryQueueBody.innerHTML = visibleProjects
+  factoryQueueBody.innerHTML = visibleReferences
     .map(
-      (project) => `
+      ({ project, reference }) => `
         <tr>
           <td><strong>${project.quoteNumber}</strong></td>
+          <td><strong>${reference.referenceNumber}</strong><div class="queue-version-label">${reference.versionLabel}</div></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>${project.customerRequest}</td>
           <td>${project.salesPersonName}</td>
-          <td><span class="status-chip">${getLatestReferenceStatus(project)}</span></td>
+          <td><span class="status-chip">${reference.status}</span></td>
           <td>${formatDate(project.updatedAt)}</td>
+          <td>
+            <button
+              type="button"
+              class="link-btn"
+              data-action="factory-open-reference"
+              data-quote-number="${project.quoteNumber}"
+              data-reference-number="${reference.referenceNumber}"
+            >View details</button>
+          </td>
         </tr>
       `
     )
     .join('');
+
+  if (!activeFactoryContext && visibleReferences.length) {
+    const [firstItem] = visibleReferences;
+    openFactoryReferenceDetail(firstItem.project.quoteNumber, firstItem.reference.referenceNumber);
+  }
 }
 
 function normalizeForSearch(value) {
@@ -877,6 +984,7 @@ function createProjectFromForm() {
         unitBreakdown: 'Will be generated by the pricing team.',
         timeline: 'Submitted and awaiting review.',
       },
+      factoryDetails: getDefaultFactoryDetails(),
       discussion: [
         {
           author: currentMode === 'admin' ? 'Admin' : accountNames[projectAccount],
@@ -976,6 +1084,103 @@ adminQueueBody?.addEventListener('click', (event) => {
       openVersionDetail(quoteNumber, referenceNumber);
     }
   }
+});
+
+factoryQueueBody?.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const factoryOpenButton = target.closest('[data-action="factory-open-reference"]');
+  if (factoryOpenButton instanceof HTMLButtonElement) {
+    const { quoteNumber, referenceNumber } = factoryOpenButton.dataset;
+    if (quoteNumber && referenceNumber) {
+      openFactoryReferenceDetail(quoteNumber, referenceNumber);
+    }
+  }
+});
+
+factoryAddDiamondRowButton?.addEventListener('click', () => {
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeFactoryContext?.quoteNumber);
+  const reference = project?.references.find(
+    (candidate) => candidate.referenceNumber === activeFactoryContext?.referenceNumber
+  );
+
+  if (!reference) {
+    return;
+  }
+
+  ensureFactoryDetails(reference);
+  reference.factoryDetails.diamondBreakdown.push({
+    quantity: '',
+    shape: '',
+    measurements: '',
+    quality: '',
+    tcw: '',
+    cost: '',
+  });
+
+  renderFactoryDiamondBreakdownRows(reference.factoryDetails.diamondBreakdown);
+});
+
+factoryDiamondBreakdownBody?.addEventListener('input', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const field = target.dataset.diamondField;
+  const index = Number(target.dataset.index);
+
+  if (!field || Number.isNaN(index) || !activeFactoryContext) {
+    return;
+  }
+
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeFactoryContext.quoteNumber);
+  const reference = project?.references.find(
+    (candidate) => candidate.referenceNumber === activeFactoryContext.referenceNumber
+  );
+
+  if (!reference) {
+    return;
+  }
+
+  ensureFactoryDetails(reference);
+  if (!reference.factoryDetails.diamondBreakdown[index]) {
+    return;
+  }
+
+  reference.factoryDetails.diamondBreakdown[index][field] = target.value;
+});
+
+factoryDetailForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  if (!activeFactoryContext) {
+    return;
+  }
+
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeFactoryContext.quoteNumber);
+  const reference = project?.references.find(
+    (candidate) => candidate.referenceNumber === activeFactoryContext.referenceNumber
+  );
+
+  if (!project || !reference) {
+    return;
+  }
+
+  ensureFactoryDetails(reference);
+
+  reference.factoryDetails.goldWeight = factoryGoldWeightInput?.value.trim() || '';
+  reference.factoryDetails.totalPrice = factoryTotalPriceInput?.value.trim() || '';
+  reference.factoryDetails.finishedMeasurementsCad = factoryFinishedMeasurementsInput?.value.trim() || '';
+  reference.factoryDetails.specSheet = factorySpecSheetInput?.value.trim() || '';
+  reference.factoryDetails.viewerLink = factoryViewerLinkInput?.value.trim() || '';
+  reference.factoryDetails.fiveAnglesRender = factoryFiveAnglesRenderInput?.value.trim() || '';
+
+  project.updatedAt = new Date().toISOString().slice(0, 10);
+  renderFactoryQueue();
 });
 
 discussionForm?.addEventListener('submit', (event) => {
