@@ -733,7 +733,7 @@ function renderFactoryQueue() {
 
   if (!visibleReferences.length) {
     factoryQueueBody.innerHTML =
-      '<tr><td class="empty-row" colspan="8">No custom requests match your current filters.</td></tr>';
+      '<tr><td class="empty-row" colspan="7">No custom requests match your current filters.</td></tr>';
     return;
   }
 
@@ -745,7 +745,6 @@ function renderFactoryQueue() {
           <td><strong>${reference.referenceNumber}</strong><div class="queue-version-label">${reference.versionLabel}</div></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>${project.customerRequest}</td>
-          <td>${project.salesPersonName}</td>
           <td><span class="status-chip">${reference.status}</span></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>
@@ -867,7 +866,7 @@ function renderOngoingProjects() {
 
   if (!visibleProjects.length) {
     projectsTableBody.innerHTML =
-      '<tr><td class="empty-row" colspan="7">No quote requests have been submitted yet.</td></tr>';
+      '<tr><td class="empty-row" colspan="6">No quote requests have been submitted yet.</td></tr>';
     renderProjectResultsMeta(0, 0);
     return;
   }
@@ -877,7 +876,7 @@ function renderOngoingProjects() {
 
   if (!filteredProjects.length) {
     projectsTableBody.innerHTML =
-      '<tr><td class="empty-row" colspan="7">No projects match your current search and filters.</td></tr>';
+      '<tr><td class="empty-row" colspan="6">No projects match your current search and filters.</td></tr>';
     return;
   }
 
@@ -915,15 +914,13 @@ function renderOngoingProjects() {
             >${isExpanded ? '▾' : '▸'}</button>
           </td>
           <td><strong>${project.quoteNumber}</strong></td>
-          <td>${accountNames[project.account]}</td>
           <td>${project.customerRequest}</td>
-          <td>${project.salesPersonName}</td>
           <td>${project.references.length}</td>
           <td><span class="status-chip">${getLatestReferenceStatus(project)}</span></td>
         </tr>
         <tr class="reference-row ${isExpanded ? '' : 'hidden'}" data-reference-group="${project.quoteNumber}">
           <td></td>
-          <td colspan="6">
+          <td colspan="5">
             <div class="reference-group">
               <p><strong>Latest update:</strong> ${formatDate(project.updatedAt)}</p>
               <ul class="reference-list">
