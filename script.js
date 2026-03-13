@@ -612,6 +612,7 @@ function renderAdminQueue() {
             <div class="queue-version-label">${reference.versionLabel}</div>
           </td>
           <td>${project.customerRequest}</td>
+          <td>${project.salesPersonName}</td>
           <td><span class="status-chip">${reference.status}</span></td>
           <td>
             <button
@@ -915,6 +916,7 @@ function renderOngoingProjects() {
           </td>
           <td><strong>${project.quoteNumber}</strong></td>
           <td>${project.customerRequest}</td>
+          <td>${project.salesPersonName}</td>
           <td>${project.references.length}</td>
           <td><span class="status-chip">${getLatestReferenceStatus(project)}</span></td>
         </tr>
