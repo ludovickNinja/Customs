@@ -749,13 +749,22 @@ function renderFactoryQueue() {
           <td><span class="status-chip">${reference.status}</span></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>
-            <button
-              type="button"
-              class="link-btn"
-              data-action="factory-open-reference"
-              data-quote-number="${project.quoteNumber}"
-              data-reference-number="${reference.referenceNumber}"
-            >View details</button>
+            <div class="factory-table-actions">
+              <button
+                type="button"
+                class="link-btn"
+                data-action="factory-open-reference"
+                data-quote-number="${project.quoteNumber}"
+                data-reference-number="${reference.referenceNumber}"
+              >View details</button>
+              <button
+                type="button"
+                class="link-btn"
+                data-action="factory-complete-reference"
+                data-quote-number="${project.quoteNumber}"
+                data-reference-number="${reference.referenceNumber}"
+              >Complete</button>
+            </div>
           </td>
         </tr>
       `
@@ -1095,6 +1104,33 @@ factoryQueueBody?.addEventListener('click', (event) => {
   if (factoryOpenButton instanceof HTMLButtonElement) {
     const { quoteNumber, referenceNumber } = factoryOpenButton.dataset;
     if (quoteNumber && referenceNumber) {
+      openFactoryReferenceDetail(quoteNumber, referenceNumber);
+    }
+    return;
+  }
+
+  const factoryCompleteButton = target.closest('[data-action="factory-complete-reference"]');
+  if (factoryCompleteButton instanceof HTMLButtonElement) {
+    const { quoteNumber, referenceNumber } = factoryCompleteButton.dataset;
+    if (!quoteNumber || !referenceNumber) {
+      return;
+    }
+
+    const project = ongoingProjects.find((candidate) => candidate.quoteNumber === quoteNumber);
+    const reference = project?.references.find((candidate) => candidate.referenceNumber === referenceNumber);
+
+    if (!project || !reference) {
+      return;
+    }
+
+    reference.status = 'Completed';
+    project.updatedAt = new Date().toISOString().slice(0, 10);
+    renderFactoryQueue();
+
+    if (
+      activeFactoryContext?.quoteNumber === quoteNumber
+      && activeFactoryContext?.referenceNumber === referenceNumber
+    ) {
       openFactoryReferenceDetail(quoteNumber, referenceNumber);
     }
   }
