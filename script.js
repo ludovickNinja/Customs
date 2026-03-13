@@ -21,6 +21,7 @@ const discussionInput = document.getElementById('discussion-input');
 const backToProjectsButton = document.getElementById('back-to-projects');
 const customerView = document.getElementById('customer-view');
 const adminView = document.getElementById('admin-view');
+const factoryView = document.getElementById('factory-view');
 const adminQueueBody = document.getElementById('admin-queue-body');
 const adminSummaryMeta = document.getElementById('admin-summary-meta');
 const adminDetailMeta = document.getElementById('admin-detail-meta');
@@ -33,11 +34,16 @@ const adminRenderingsList = document.getElementById('admin-renderings-list');
 const adminPricingTotal = document.getElementById('admin-pricing-total');
 const adminPricingBreakdown = document.getElementById('admin-pricing-breakdown');
 const adminPricingTimeline = document.getElementById('admin-pricing-timeline');
+const factoryQueueBody = document.getElementById('factory-queue-body');
+const factoryFiltersForm = document.getElementById('factory-filters');
+const factorySearchInput = document.getElementById('factory-search');
+const factoryStatusFilter = document.getElementById('factory-status-filter');
 
 const accountNames = {
   account1: 'Account 1',
   account2: 'Account 2',
   admin: 'Admin',
+  factory: 'Factory',
 };
 
 let currentMode = 'account1';
@@ -47,6 +53,11 @@ let nextReferenceNumber = 50100;
 let activeVersionContext = null;
 
 const projectFilterState = {
+  search: '',
+  status: '',
+};
+
+const factoryFilterState = {
   search: '',
   status: '',
 };
@@ -382,16 +393,20 @@ function setMode(mode) {
     accountInput.value = accountNames[mode] || accountNames.account1;
   }
 
-  if (customerView && adminView) {
+  if (customerView && adminView && factoryView) {
     const isAdminMode = mode === 'admin';
-    customerView.classList.toggle('hidden', isAdminMode);
+    const isFactoryMode = mode === 'factory';
+    customerView.classList.toggle('hidden', isAdminMode || isFactoryMode);
     adminView.classList.toggle('hidden', !isAdminMode);
+    factoryView.classList.toggle('hidden', !isFactoryMode);
   }
 
   renderOngoingProjects();
 
   if (mode === 'admin') {
     renderAdminQueue();
+  } else if (mode === 'factory') {
+    renderFactoryQueue();
   } else {
     setPage('home');
   }
@@ -441,7 +456,7 @@ function getDiscussionMarkup(messages) {
 }
 
 function getVisibleProjects() {
-  if (currentMode === 'admin') {
+  if (currentMode === 'admin' || currentMode === 'factory') {
     return ongoingProjects;
   }
 
@@ -578,6 +593,72 @@ function renderAdminQueue() {
     const [firstItem] = queueItems;
     openVersionDetail(firstItem.project.quoteNumber, firstItem.reference.referenceNumber);
   }
+}
+
+
+function getVisibleFactoryProjects() {
+  const normalizedSearch = normalizeForSearch(factoryFilterState.search);
+
+  return ongoingProjects.filter((project) => {
+    const latestStatus = getLatestReferenceStatus(project);
+    const matchesStatus = !factoryFilterState.status || latestStatus === factoryFilterState.status;
+
+    if (!matchesStatus) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return [project.quoteNumber, project.customerRequest, project.salesPersonName, latestStatus]
+      .filter(Boolean)
+      .map((token) => token.toString().toLowerCase())
+      .some((token) => token.includes(normalizedSearch));
+  });
+}
+
+function syncFactoryStatusFilterOptions() {
+  if (!factoryStatusFilter) {
+    return;
+  }
+
+  const statusOptions = getUniqueStatuses(ongoingProjects);
+  factoryStatusFilter.innerHTML = `
+    <option value="">All statuses</option>
+    ${statusOptions.map((status) => `<option value="${status}">${status}</option>`).join('')}
+  `;
+  factoryStatusFilter.value = factoryFilterState.status;
+}
+
+function renderFactoryQueue() {
+  if (!factoryQueueBody) {
+    return;
+  }
+
+  syncFactoryStatusFilterOptions();
+  const visibleProjects = getVisibleFactoryProjects();
+
+  if (!visibleProjects.length) {
+    factoryQueueBody.innerHTML =
+      '<tr><td class="empty-row" colspan="6">No custom requests match your current filters.</td></tr>';
+    return;
+  }
+
+  factoryQueueBody.innerHTML = visibleProjects
+    .map(
+      (project) => `
+        <tr>
+          <td><strong>${project.quoteNumber}</strong></td>
+          <td>${formatDate(project.updatedAt)}</td>
+          <td>${project.customerRequest}</td>
+          <td>${project.salesPersonName}</td>
+          <td><span class="status-chip">${getLatestReferenceStatus(project)}</span></td>
+          <td>${formatDate(project.updatedAt)}</td>
+        </tr>
+      `
+    )
+    .join('');
 }
 
 function normalizeForSearch(value) {
@@ -766,7 +847,7 @@ function createProjectFromForm() {
   const requestText = (formData.get('reference') || '').toString().trim() || 'General quote request';
   const salesPersonName = (formData.get('salespersonName') || '').toString().trim() || 'Not provided';
 
-  const projectAccount = currentMode === 'admin' ? 'account1' : currentMode;
+  const projectAccount = ['admin', 'factory'].includes(currentMode) ? 'account1' : currentMode;
 
   const versionCards = [...versionsContainer.querySelectorAll('.version-card')];
   const references = versionCards.map((card, index) => {
@@ -968,6 +1049,7 @@ adminDetailForm?.addEventListener('submit', (event) => {
 
   renderOngoingProjects();
   renderAdminQueue();
+  renderFactoryQueue();
   renderAdminAssets(reference);
   if (adminConversationThread) {
     adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
@@ -1007,8 +1089,24 @@ clearProjectFiltersButton?.addEventListener('click', () => {
   renderOngoingProjects();
 });
 
+
+factoryFiltersForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+
+factorySearchInput?.addEventListener('input', () => {
+  factoryFilterState.search = factorySearchInput.value;
+  renderFactoryQueue();
+});
+
+factoryStatusFilter?.addEventListener('change', () => {
+  factoryFilterState.status = factoryStatusFilter.value;
+  renderFactoryQueue();
+});
+
 createVersionCard();
 setMode('account1');
 setPage('home');
 renderOngoingProjects();
 renderAdminQueue();
+renderFactoryQueue();
