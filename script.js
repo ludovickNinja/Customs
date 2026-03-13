@@ -77,7 +77,7 @@ const ongoingProjects = [
   {
     quoteNumber: 'Q80001',
     account: 'account1',
-    customerRequest: 'PO-6604 / SOL-ALPHA / Crown Canada',
+    customerRequest: 'PO-6604',
     salesPersonName: 'Emma Campbell',
     updatedAt: '2026-03-12',
     references: [
@@ -126,7 +126,7 @@ const ongoingProjects = [
   {
     quoteNumber: 'Q80002',
     account: 'account2',
-    customerRequest: 'PO-7788 / HALO-V2 / Montclair Bridal',
+    customerRequest: 'HALO-V2',
     salesPersonName: 'Noah Tremblay',
     updatedAt: '2026-03-13',
     references: [
@@ -195,7 +195,7 @@ const ongoingProjects = [
   {
     quoteNumber: 'Q80003',
     account: 'account1',
-    customerRequest: 'PO-8109 / PD-SIGNATURE / Atelier Linea',
+    customerRequest: 'Olivia & Ethan',
     salesPersonName: 'Sofia Nguyen',
     updatedAt: '2026-03-14',
     references: [
@@ -244,7 +244,7 @@ const ongoingProjects = [
   {
     quoteNumber: 'Q80004',
     account: 'account2',
-    customerRequest: 'PO-9012 / BEZEL-FLORA / Northlake Fine',
+    customerRequest: 'Mia Chen',
     salesPersonName: 'Avery Patel',
     updatedAt: '2026-03-15',
     references: [
@@ -293,7 +293,7 @@ const ongoingProjects = [
   {
     quoteNumber: 'Q80005',
     account: 'account1',
-    customerRequest: 'PO-9321 / OVAL-TRIO / Lucent Studio',
+    customerRequest: 'PO-9321 / OVAL-TRIO',
     salesPersonName: 'Maya Chen',
     updatedAt: '2026-03-16',
     references: [
