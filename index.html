@@ -57,7 +57,7 @@
                     </label>
 
                     <label>
-                      PO# / Reference / Client Name <span class="required">*</span>
+                      PO# / Reference / Client Name (enter any one) <span class="required">*</span>
                       <input type="text" name="reference" required />
                     </label>
 
@@ -303,16 +303,79 @@
                 <thead>
                   <tr>
                     <th scope="col">Quote #</th>
+                    <th scope="col">Reference</th>
                     <th scope="col">Date Ordered</th>
                     <th scope="col">Custom Request</th>
                     <th scope="col">Sales Person</th>
                     <th scope="col">Status</th>
                     <th scope="col">Last Update</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="factory-queue-body"></tbody>
               </table>
             </div>
+          </section>
+
+          <section class="card inner-card factory-detail-card">
+            <h3>Reference Details</h3>
+            <p id="factory-detail-meta" class="project-intro">Select a reference and click “View details”.</p>
+
+            <form id="factory-detail-form" class="admin-detail-form">
+              <div class="grid-2">
+                <label>
+                  Gold Weight
+                  <input id="factory-gold-weight" type="text" placeholder="e.g. 8.4g" required />
+                </label>
+
+                <label>
+                  Total Price
+                  <input id="factory-total-price" type="text" placeholder="e.g. $2,950" required />
+                </label>
+
+                <label>
+                  Finished Measurements CAD
+                  <input id="factory-finished-measurements" type="text" placeholder="e.g. 22.4 x 18.1 x 5.8 mm" required />
+                </label>
+
+                <label>
+                  Spec Sheet
+                  <input id="factory-spec-sheet" type="text" placeholder="File name or link" required />
+                </label>
+
+                <label>
+                  Viewer Link
+                  <input id="factory-viewer-link" type="url" placeholder="https://..." required />
+                </label>
+
+                <label>
+                  5 Angles Render
+                  <input id="factory-five-angles-render" type="text" placeholder="Folder, link, or file names" required />
+                </label>
+              </div>
+
+              <h4>Diamond Breakdown</h4>
+              <div class="projects-table-wrapper">
+                <table class="projects-table" aria-label="Diamond breakdown">
+                  <thead>
+                    <tr>
+                      <th scope="col">Quantity</th>
+                      <th scope="col">Shape</th>
+                      <th scope="col">Measurements</th>
+                      <th scope="col">Quality</th>
+                      <th scope="col">TCW</th>
+                      <th scope="col">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody id="factory-diamond-breakdown-body"></tbody>
+                </table>
+              </div>
+
+              <div class="submit-row factory-detail-actions">
+                <button type="button" id="factory-add-diamond-row" class="secondary-btn">Add diamond row</button>
+                <button type="submit" class="primary-btn">Save factory details</button>
+              </div>
+            </form>
           </section>
         </article>
       </section>

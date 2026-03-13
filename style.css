@@ -572,6 +572,28 @@ small {
 }
 
 
+
+.quote-form label small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.factory-detail-card {
+  margin-top: 16px;
+}
+
+.factory-detail-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+#factory-diamond-breakdown-body input {
+  min-width: 110px;
+}
+
 @media (max-width: 900px) {
   #customer-view {
     grid-template-columns: 1fr;
