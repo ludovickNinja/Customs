@@ -592,13 +592,80 @@ small {
   margin-top: 16px;
 }
 
+
+.column-config-trigger {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shape-config-panel {
+  margin-top: 16px;
+}
+
+.shape-config-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.shape-config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.shape-config-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.shape-config-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.shape-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.shape-option input {
+  width: auto;
+  margin: 0;
+}
+
+.factory-stone-summary {
+  margin-top: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+
 .factory-detail-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-start;
 }
 
-#factory-diamond-breakdown-body input {
+#factory-diamond-breakdown-body input,
+#factory-diamond-breakdown-body select {
   min-width: 110px;
 }
 
