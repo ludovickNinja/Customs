@@ -349,6 +349,20 @@
             </div>
           </section>
 
+
+          <div id="factory-shape-config-panel" class="shape-config-panel hidden" role="dialog" aria-modal="false" aria-labelledby="factory-shape-config-title">
+            <div class="shape-config-card">
+              <div class="shape-config-header">
+                <div>
+                  <h4 id="factory-shape-config-title">Shape options</h4>
+                  <p>Select which shapes appear in the dropdown.</p>
+                </div>
+                <button type="button" id="factory-shape-config-close" class="secondary-btn">Close</button>
+              </div>
+              <div id="factory-shape-config-options" class="shape-config-options"></div>
+            </div>
+          </div>
+
           <section class="card inner-card factory-detail-card">
             <h3>Reference Details</h3>
             <p id="factory-detail-meta" class="project-intro">Select a reference and click “View details”.</p>
@@ -392,7 +406,11 @@
                   <thead>
                     <tr>
                       <th scope="col">Quantity</th>
-                      <th scope="col">Shape</th>
+                      <th scope="col">
+                        <button type="button" id="factory-shape-config-trigger" class="column-config-trigger" aria-haspopup="dialog" aria-expanded="false">
+                          Shape
+                        </button>
+                      </th>
                       <th scope="col">Measurements</th>
                       <th scope="col">Quality</th>
                       <th scope="col">TCW</th>
@@ -402,6 +420,8 @@
                   <tbody id="factory-diamond-breakdown-body"></tbody>
                 </table>
               </div>
+
+              <div id="factory-stone-summary" class="factory-stone-summary" aria-live="polite"></div>
 
               <div class="submit-row factory-detail-actions">
                 <button type="button" id="factory-add-diamond-row" class="secondary-btn">Add diamond row</button>

@@ -54,6 +54,11 @@ const factoryViewerLinkInput = document.getElementById('factory-viewer-link');
 const factoryFiveAnglesRenderInput = document.getElementById('factory-five-angles-render');
 const factoryDiamondBreakdownBody = document.getElementById('factory-diamond-breakdown-body');
 const factoryAddDiamondRowButton = document.getElementById('factory-add-diamond-row');
+const factoryStoneSummary = document.getElementById('factory-stone-summary');
+const factoryShapeConfigTrigger = document.getElementById('factory-shape-config-trigger');
+const factoryShapeConfigPanel = document.getElementById('factory-shape-config-panel');
+const factoryShapeConfigOptions = document.getElementById('factory-shape-config-options');
+const factoryShapeConfigClose = document.getElementById('factory-shape-config-close');
 
 const accountNames = {
   account1: 'Account 1',
@@ -68,6 +73,9 @@ let nextQuoteNumber = 80010;
 let nextReferenceNumber = 50100;
 let activeVersionContext = null;
 let activeFactoryContext = null;
+
+const availableShapeOptions = ['RD', 'PR', 'PS', 'EM', 'RT', 'OV', 'MQ', 'BG', 'TB', 'HM', 'TP', 'Other'];
+const selectedShapeOptions = new Set(availableShapeOptions);
 
 const projectFilterState = {
   search: '',
@@ -777,6 +785,69 @@ function syncFactoryStatusFilterOptions() {
   factoryStatusFilter.value = factoryFilterState.status;
 }
 
+function formatStoneSummary(rows) {
+  const summaryMap = new Map();
+
+  rows.forEach((row) => {
+    const quantity = Number.parseFloat(row.quantity);
+    const tcw = Number.parseFloat(row.tcw);
+    const shape = (row.shape || '').trim();
+    const quality = (row.quality || '').trim();
+
+    if (!shape || !quality || Number.isNaN(quantity) || Number.isNaN(tcw)) {
+      return;
+    }
+
+    const key = `${shape}__${quality}`;
+    const current = summaryMap.get(key) || { quantity: 0, tcw: 0, shape, quality };
+    current.quantity += quantity;
+    current.tcw += tcw;
+    summaryMap.set(key, current);
+  });
+
+  return [...summaryMap.values()]
+    .map((item) => `${item.quantity} ${item.shape} = ${Number(item.tcw.toFixed(2))}ct ${item.quality}`)
+    .join(' • ');
+}
+
+function renderFactoryStoneSummary(rows) {
+  if (!factoryStoneSummary) {
+    return;
+  }
+
+  const summary = formatStoneSummary(rows);
+  factoryStoneSummary.textContent = summary || 'Add quantity, shape, quality, and TCW to see the stone summary.';
+}
+
+function renderFactoryShapeConfig() {
+  if (!factoryShapeConfigOptions) {
+    return;
+  }
+
+  factoryShapeConfigOptions.innerHTML = availableShapeOptions
+    .map((shape) => `
+      <label class="shape-option">
+        <input type="checkbox" value="${shape}" ${selectedShapeOptions.has(shape) ? 'checked' : ''} />
+        <span>${shape}</span>
+      </label>
+    `)
+    .join('');
+}
+
+function getShapeSelectMarkup(index, currentValue) {
+  const selectedOptions = availableShapeOptions.filter((shape) => selectedShapeOptions.has(shape));
+  const options = selectedOptions.includes(currentValue) || !currentValue
+    ? selectedOptions
+    : [...selectedOptions, currentValue];
+
+  return `
+    <select data-diamond-field="shape" data-index="${index}" required>
+      <option value="">Select shape</option>
+      ${options.map((shape) => `<option value="${shape}" ${shape === currentValue ? 'selected' : ''}>${shape}</option>`).join('')}
+    </select>
+  `;
+}
+
 function renderFactoryDiamondBreakdownRows(rows) {
   if (!factoryDiamondBreakdownBody) {
     return;
@@ -787,7 +858,7 @@ function renderFactoryDiamondBreakdownRows(rows) {
       (row, index) => `
         <tr>
           <td><input type="text" data-diamond-field="quantity" data-index="${index}" value="${row.quantity || ''}" required /></td>
-          <td><input type="text" data-diamond-field="shape" data-index="${index}" value="${row.shape || ''}" required /></td>
+          <td>${getShapeSelectMarkup(index, row.shape || '')}</td>
           <td><input type="text" data-diamond-field="measurements" data-index="${index}" value="${row.measurements || ''}" required /></td>
           <td><input type="text" data-diamond-field="quality" data-index="${index}" value="${row.quality || ''}" required /></td>
           <td><input type="text" data-diamond-field="tcw" data-index="${index}" value="${row.tcw || ''}" required /></td>
@@ -796,6 +867,8 @@ function renderFactoryDiamondBreakdownRows(rows) {
       `
     )
     .join('');
+
+  renderFactoryStoneSummary(rows);
 }
 
 function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
@@ -1260,9 +1333,9 @@ factoryAddDiamondRowButton?.addEventListener('click', () => {
   renderFactoryDiamondBreakdownRows(reference.factoryDetails.diamondBreakdown);
 });
 
-factoryDiamondBreakdownBody?.addEventListener('input', (event) => {
+function handleFactoryDiamondBreakdownEdit(event) {
   const target = event.target;
-  if (!(target instanceof HTMLInputElement)) {
+  if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
     return;
   }
 
@@ -1288,7 +1361,11 @@ factoryDiamondBreakdownBody?.addEventListener('input', (event) => {
   }
 
   reference.factoryDetails.diamondBreakdown[index][field] = target.value;
-});
+  renderFactoryStoneSummary(reference.factoryDetails.diamondBreakdown);
+}
+
+factoryDiamondBreakdownBody?.addEventListener('input', handleFactoryDiamondBreakdownEdit);
+factoryDiamondBreakdownBody?.addEventListener('change', handleFactoryDiamondBreakdownEdit);
 
 factoryDetailForm?.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -1321,6 +1398,47 @@ factoryDetailForm?.addEventListener('submit', (event) => {
 
   project.updatedAt = new Date().toISOString().slice(0, 10);
   renderFactoryQueue();
+});
+
+factoryShapeConfigTrigger?.addEventListener('click', () => {
+  const isHidden = factoryShapeConfigPanel?.classList.contains('hidden');
+  factoryShapeConfigPanel?.classList.toggle('hidden', !isHidden);
+  factoryShapeConfigTrigger.setAttribute('aria-expanded', String(isHidden));
+  if (isHidden) {
+    renderFactoryShapeConfig();
+  }
+});
+
+factoryShapeConfigClose?.addEventListener('click', () => {
+  factoryShapeConfigPanel?.classList.add('hidden');
+  factoryShapeConfigTrigger?.setAttribute('aria-expanded', 'false');
+});
+
+factoryShapeConfigOptions?.addEventListener('change', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') {
+    return;
+  }
+
+  if (target.checked) {
+    selectedShapeOptions.add(target.value);
+  } else if (selectedShapeOptions.size > 1) {
+    selectedShapeOptions.delete(target.value);
+  } else {
+    target.checked = true;
+  }
+
+  if (!activeFactoryContext) {
+    return;
+  }
+
+  const project = ongoingProjects.find((candidate) => candidate.quoteNumber === activeFactoryContext.quoteNumber);
+  const reference = project?.references.find((candidate) => candidate.referenceNumber === activeFactoryContext.referenceNumber);
+  if (!reference) {
+    return;
+  }
+
+  renderFactoryDiamondBreakdownRows(reference.factoryDetails.diamondBreakdown);
 });
 
 discussionForm?.addEventListener('submit', (event) => {
@@ -1450,6 +1568,7 @@ factoryStatusFilter?.addEventListener('change', () => {
 });
 
 createVersionCard();
+renderFactoryShapeConfig();
 setMode('account1');
 setPage('home');
 renderOngoingProjects();
