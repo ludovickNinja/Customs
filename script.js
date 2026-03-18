@@ -33,6 +33,8 @@ const adminSummaryMeta = document.getElementById('admin-summary-meta');
 const adminDetailMeta = document.getElementById('admin-detail-meta');
 const adminDetailForm = document.getElementById('admin-detail-form');
 const adminStatusInput = document.getElementById('admin-status-input');
+const adminAssignedFactoryField = document.getElementById('admin-assigned-factory-field');
+const adminAssignedFactoryInput = document.getElementById('admin-assigned-factory-input');
 const factoryStatusInput = document.getElementById('factory-status-input');
 const adminRenderingName = document.getElementById('admin-rendering-name');
 const adminMessageInput = document.getElementById('admin-message-input');
@@ -91,6 +93,7 @@ const factoryFilterState = {
 
 const ADMIN_PROJECT_STATUSES = ['Received', 'Reviewed', 'Assigned', 'QA', 'Revision', 'Ready', 'Sent'];
 const FACTORY_PROJECT_STATUSES = ['Received', 'Reviewed', 'In Progress', 'Revision', 'Completed'];
+const ASSIGNABLE_FACTORIES = ['InHouse', 'Factory1', 'Factory2'];
 
 function getDefaultAdminStatus() {
   return ADMIN_PROJECT_STATUSES[0];
@@ -111,6 +114,7 @@ function ensureReferenceStatuses(reference) {
 
   reference.adminStatus = normalizeStatus(reference.adminStatus || reference.status, ADMIN_PROJECT_STATUSES, getDefaultAdminStatus());
   reference.factoryStatus = normalizeStatus(reference.factoryStatus, FACTORY_PROJECT_STATUSES, getDefaultFactoryStatus());
+  reference.assignedFactory = ASSIGNABLE_FACTORIES.includes(reference.assignedFactory) ? reference.assignedFactory : '';
   reference.status = reference.adminStatus;
 }
 
@@ -133,6 +137,17 @@ function setAdminStatus(reference, nextStatus) {
 function setFactoryStatus(reference, nextStatus) {
   ensureReferenceStatuses(reference);
   reference.factoryStatus = normalizeStatus(nextStatus, FACTORY_PROJECT_STATUSES, reference.factoryStatus);
+}
+
+function syncAssignedFactoryField(nextStatus, assignedFactory = '') {
+  if (!adminAssignedFactoryField || !adminAssignedFactoryInput) {
+    return;
+  }
+
+  const shouldShow = nextStatus === 'Assigned';
+  adminAssignedFactoryField.classList.toggle('hidden', !shouldShow);
+  adminAssignedFactoryInput.required = shouldShow;
+  adminAssignedFactoryInput.value = shouldShow ? assignedFactory : '';
 }
 
 function getStatusOptionsMarkup(statuses, selectedStatus) {
@@ -204,6 +219,7 @@ const ongoingProjects = [
         referenceNumber: 'R50003',
         versionLabel: 'Version 1',
         status: 'Assigned',
+        assignedFactory: 'Factory1',
         factoryStatus: 'In Progress',
         adminRenderings: ['halo_v2_preview_admin.png'],
         designBrief: {
@@ -378,6 +394,7 @@ const ongoingProjects = [
         referenceNumber: 'R50010',
         versionLabel: 'Version 1',
         status: 'Assigned',
+        assignedFactory: 'InHouse',
         factoryStatus: 'In Progress',
         adminRenderings: [],
         designBrief: {
@@ -750,6 +767,7 @@ function openVersionDetail(quoteNumber, referenceNumber) {
     if (adminStatusInput) {
       adminStatusInput.innerHTML = getStatusOptionsMarkup(ADMIN_PROJECT_STATUSES, getAdminStatus(reference));
     }
+    syncAssignedFactoryField(getAdminStatus(reference), reference.assignedFactory);
     adminPricingTotal.value = reference.pricing.estimatedTotal;
     adminPricingBreakdown.value = reference.pricing.unitBreakdown;
     adminPricingTimeline.value = reference.pricing.timeline;
@@ -1555,9 +1573,16 @@ adminDetailForm?.addEventListener('submit', (event) => {
   }
 
   const nextStatus = adminStatusInput?.value;
+  const nextAssignedFactory = adminAssignedFactoryInput?.value || '';
+  if (nextStatus === 'Assigned' && !nextAssignedFactory) {
+    alert('Please select the factory before marking this request as Assigned.');
+    adminAssignedFactoryInput?.focus();
+    return;
+  }
   if (nextStatus) {
     setAdminStatus(reference, nextStatus);
   }
+  reference.assignedFactory = nextStatus === 'Assigned' ? nextAssignedFactory : '';
 
   const renderingName = adminRenderingName.value.trim();
   if (renderingName) {
@@ -1594,6 +1619,11 @@ adminDetailForm?.addEventListener('submit', (event) => {
   if (adminConversationThread) {
     adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
   }
+});
+
+adminStatusInput?.addEventListener('change', () => {
+  const { reference } = getProjectByContext();
+  syncAssignedFactoryField(adminStatusInput.value, reference?.assignedFactory || '');
 });
 
 backToProjectsButton?.addEventListener('click', () => {
