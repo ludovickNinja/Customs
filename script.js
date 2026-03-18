@@ -33,6 +33,7 @@ const adminSummaryMeta = document.getElementById('admin-summary-meta');
 const adminDetailMeta = document.getElementById('admin-detail-meta');
 const adminDetailForm = document.getElementById('admin-detail-form');
 const adminStatusInput = document.getElementById('admin-status-input');
+const factoryStatusInput = document.getElementById('factory-status-input');
 const adminRenderingName = document.getElementById('admin-rendering-name');
 const adminMessageInput = document.getElementById('admin-message-input');
 const adminConversationThread = document.getElementById('admin-conversation-thread');
@@ -87,6 +88,59 @@ const factoryFilterState = {
   status: '',
 };
 
+
+const ADMIN_PROJECT_STATUSES = ['Received', 'Reviewed', 'Assigned', 'QA', 'Revision', 'Ready', 'Sent'];
+const FACTORY_PROJECT_STATUSES = ['Received', 'Reviewed', 'In Progress', 'Revision', 'Completed'];
+
+function getDefaultAdminStatus() {
+  return ADMIN_PROJECT_STATUSES[0];
+}
+
+function getDefaultFactoryStatus() {
+  return FACTORY_PROJECT_STATUSES[0];
+}
+
+function normalizeStatus(currentStatus, allowedStatuses, fallbackStatus) {
+  return allowedStatuses.includes(currentStatus) ? currentStatus : fallbackStatus;
+}
+
+function ensureReferenceStatuses(reference) {
+  if (!reference) {
+    return;
+  }
+
+  reference.adminStatus = normalizeStatus(reference.adminStatus || reference.status, ADMIN_PROJECT_STATUSES, getDefaultAdminStatus());
+  reference.factoryStatus = normalizeStatus(reference.factoryStatus, FACTORY_PROJECT_STATUSES, getDefaultFactoryStatus());
+  reference.status = reference.adminStatus;
+}
+
+function getAdminStatus(reference) {
+  ensureReferenceStatuses(reference);
+  return reference.adminStatus;
+}
+
+function getFactoryStatus(reference) {
+  ensureReferenceStatuses(reference);
+  return reference.factoryStatus;
+}
+
+function setAdminStatus(reference, nextStatus) {
+  ensureReferenceStatuses(reference);
+  reference.adminStatus = normalizeStatus(nextStatus, ADMIN_PROJECT_STATUSES, reference.adminStatus);
+  reference.status = reference.adminStatus;
+}
+
+function setFactoryStatus(reference, nextStatus) {
+  ensureReferenceStatuses(reference);
+  reference.factoryStatus = normalizeStatus(nextStatus, FACTORY_PROJECT_STATUSES, reference.factoryStatus);
+}
+
+function getStatusOptionsMarkup(statuses, selectedStatus) {
+  return statuses
+    .map((status) => `<option value="${status}" ${status === selectedStatus ? 'selected' : ''}>${status}</option>`)
+    .join('');
+}
+
 const ongoingProjects = [
   {
     quoteNumber: 'Q80001',
@@ -98,7 +152,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50001',
         versionLabel: 'Version 1',
-        status: 'CAD review pending',
+        status: 'Reviewed',
+        factoryStatus: 'Reviewed',
         adminRenderings: ['solitaire_v1_render_front.png'],
         designBrief: {
           styleSku: 'SOL-ALPHA-01',
@@ -118,7 +173,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50002',
         versionLabel: 'Version 2',
-        status: 'Awaiting center stone details',
+        status: 'Revision',
+        factoryStatus: 'Revision',
         adminRenderings: [],
         designBrief: {
           styleSku: 'SOL-ALPHA-02',
@@ -147,7 +203,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50003',
         versionLabel: 'Version 1',
-        status: 'Rendering in progress',
+        status: 'Assigned',
+        factoryStatus: 'In Progress',
         adminRenderings: ['halo_v2_preview_admin.png'],
         designBrief: {
           styleSku: 'HALO-V2-A',
@@ -167,7 +224,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50004',
         versionLabel: 'Version 2',
-        status: 'Pricing validation in progress',
+        status: 'QA',
+        factoryStatus: 'In Progress',
         adminRenderings: ['halo_v2_variant_side.png'],
         designBrief: {
           styleSku: 'HALO-V2-B',
@@ -187,7 +245,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50005',
         versionLabel: 'Version 3',
-        status: 'Sent for internal approval',
+        status: 'Sent',
+        factoryStatus: 'Completed',
         adminRenderings: [],
         designBrief: {
           styleSku: 'HALO-V2-C',
@@ -216,7 +275,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50006',
         versionLabel: 'Version 1',
-        status: 'Metal confirmation required',
+        status: 'Revision',
+        factoryStatus: 'Revision',
         adminRenderings: [],
         designBrief: {
           styleSku: 'PD-SIGN-02',
@@ -236,7 +296,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50007',
         versionLabel: 'Version 2',
-        status: 'Ready for quote release',
+        status: 'Ready',
+        factoryStatus: 'Completed',
         adminRenderings: ['pendant_signature_v2_front.png'],
         designBrief: {
           styleSku: 'PD-SIGN-03',
@@ -265,7 +326,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50008',
         versionLabel: 'Version 1',
-        status: 'CAD review pending',
+        status: 'Reviewed',
+        factoryStatus: 'Reviewed',
         adminRenderings: ['bezel_flora_v1_top.png'],
         designBrief: {
           styleSku: 'BZ-FLORA-01',
@@ -285,7 +347,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50009',
         versionLabel: 'Version 2',
-        status: 'Ready for quote release',
+        status: 'Ready',
+        factoryStatus: 'Completed',
         adminRenderings: ['bezel_flora_v2_front.png'],
         designBrief: {
           styleSku: 'BZ-FLORA-02',
@@ -314,7 +377,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50010',
         versionLabel: 'Version 1',
-        status: 'Rendering in progress',
+        status: 'Assigned',
+        factoryStatus: 'In Progress',
         adminRenderings: [],
         designBrief: {
           styleSku: 'OV-TRIO-01',
@@ -334,7 +398,8 @@ const ongoingProjects = [
       {
         referenceNumber: 'R50011',
         versionLabel: 'Version 2',
-        status: 'Awaiting center stone details',
+        status: 'Revision',
+        factoryStatus: 'Revision',
         adminRenderings: [],
         designBrief: {
           styleSku: 'OV-TRIO-02',
@@ -413,6 +478,7 @@ function renderVersionRenderings(reference) {
     return;
   }
 
+  ensureReferenceStatuses(reference);
   ensureFactoryDetails(reference);
   const details = reference.factoryDetails;
   const hasViewer = Boolean(details.viewerLink);
@@ -578,7 +644,8 @@ function formatDate(value) {
 }
 
 function getLatestReferenceStatus(project) {
-  return project.references[project.references.length - 1]?.status || 'No status';
+  const latestReference = project.references[project.references.length - 1];
+  return latestReference ? getAdminStatus(latestReference) : 'No status';
 }
 
 function getDiscussionMarkup(messages) {
@@ -646,6 +713,8 @@ function openVersionDetail(quoteNumber, referenceNumber) {
     return;
   }
 
+  ensureReferenceStatuses(reference);
+
   activeVersionContext = { quoteNumber, referenceNumber };
 
   versionDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${accountNames[project.account]} • ${project.customerRequest}`;
@@ -678,7 +747,9 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   renderAdminAssets(reference);
 
   if (currentMode === 'admin') {
-    adminStatusInput.value = reference.status;
+    if (adminStatusInput) {
+      adminStatusInput.innerHTML = getStatusOptionsMarkup(ADMIN_PROJECT_STATUSES, getAdminStatus(reference));
+    }
     adminPricingTotal.value = reference.pricing.estimatedTotal;
     adminPricingBreakdown.value = reference.pricing.unitBreakdown;
     adminPricingTimeline.value = reference.pricing.timeline;
@@ -703,11 +774,7 @@ function renderAdminQueue() {
   }
 
   const queueItems = getAllReferencesForQueue();
-  const attentionCount = queueItems.filter(({ reference }) =>
-    ['pending', 'awaiting', 'progress', 'required'].some((token) =>
-      reference.status.toLowerCase().includes(token)
-    )
-  ).length;
+  const attentionCount = queueItems.filter(({ reference }) => !['Ready', 'Sent'].includes(getAdminStatus(reference))).length;
 
   adminSummaryMeta.textContent = `${queueItems.length} active reference(s) • ${attentionCount} needing attention`;
 
@@ -722,7 +789,7 @@ function renderAdminQueue() {
           </td>
           <td>${project.customerRequest}</td>
           <td>${project.salesPersonName}</td>
-          <td><span class="status-chip">${reference.status}</span></td>
+          <td><span class="status-chip">${getAdminStatus(reference)}</span></td>
           <td>
             <button
               type="button"
@@ -748,7 +815,7 @@ function getVisibleFactoryReferences() {
   const normalizedSearch = normalizeForSearch(factoryFilterState.search);
 
   return getAllReferencesForQueue().filter(({ project, reference }) => {
-    const matchesStatus = !factoryFilterState.status || reference.status === factoryFilterState.status;
+    const matchesStatus = !factoryFilterState.status || getFactoryStatus(reference) === factoryFilterState.status;
 
     if (!matchesStatus) {
       return false;
@@ -764,7 +831,7 @@ function getVisibleFactoryReferences() {
       reference.versionLabel,
       project.customerRequest,
       project.salesPersonName,
-      reference.status,
+      getFactoryStatus(reference),
     ]
       .filter(Boolean)
       .map((token) => token.toString().toLowerCase())
@@ -777,7 +844,7 @@ function syncFactoryStatusFilterOptions() {
     return;
   }
 
-  const statusOptions = getUniqueStatuses(ongoingProjects);
+  const statusOptions = FACTORY_PROJECT_STATUSES;
   factoryStatusFilter.innerHTML = `
     <option value="">All statuses</option>
     ${statusOptions.map((status) => `<option value="${status}">${status}</option>`).join('')}
@@ -879,6 +946,7 @@ function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
     return;
   }
 
+  ensureReferenceStatuses(reference);
   ensureFactoryDetails(reference);
   const details = reference.factoryDetails;
 
@@ -888,6 +956,9 @@ function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
     factoryDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
   }
 
+  if (factoryStatusInput) {
+    factoryStatusInput.innerHTML = getStatusOptionsMarkup(FACTORY_PROJECT_STATUSES, getFactoryStatus(reference));
+  }
   if (factoryGoldWeightInput) factoryGoldWeightInput.value = details.goldWeight || '';
   if (factoryTotalPriceInput) factoryTotalPriceInput.value = details.totalPrice || '';
   if (factoryFinishedMeasurementsInput) factoryFinishedMeasurementsInput.value = details.finishedMeasurementsCad || '';
@@ -920,7 +991,7 @@ function renderFactoryQueue() {
           <td><strong>${reference.referenceNumber}</strong><div class="queue-version-label">${reference.versionLabel}</div></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>${project.customerRequest}</td>
-          <td><span class="status-chip">${reference.status}</span></td>
+          <td><span class="status-chip">${getFactoryStatus(reference)}</span></td>
           <td>${formatDate(project.updatedAt)}</td>
           <td>
             <div class="factory-table-actions">
@@ -937,7 +1008,7 @@ function renderFactoryQueue() {
                 data-action="factory-complete-reference"
                 data-quote-number="${project.quoteNumber}"
                 data-reference-number="${reference.referenceNumber}"
-              >Complete</button>
+              >Mark completed</button>
             </div>
           </td>
         </tr>
@@ -967,7 +1038,7 @@ function getSearchableTokens(project) {
   const referenceTokens = project.references.flatMap((reference) => [
     reference.referenceNumber,
     reference.versionLabel,
-    reference.status,
+    getAdminStatus(reference),
     reference.designBrief.styleSku,
     reference.designBrief.metal,
     reference.designBrief.size,
@@ -981,7 +1052,7 @@ function getSearchableTokens(project) {
 }
 
 function getUniqueStatuses(projects) {
-  return [...new Set(projects.flatMap((project) => project.references.map((reference) => reference.status)))]
+  return [...new Set(projects.flatMap((project) => project.references.map((reference) => getAdminStatus(reference))))]
     .filter(Boolean)
     .sort((left, right) => left.localeCompare(right));
 }
@@ -992,7 +1063,7 @@ function syncStatusFilterOptions(visibleProjects) {
   }
 
   const selectedStatus = projectFilterState.status;
-  const statusOptions = getUniqueStatuses(visibleProjects);
+  const statusOptions = ADMIN_PROJECT_STATUSES;
 
   projectStatusFilter.innerHTML = `
     <option value="">All statuses</option>
@@ -1008,7 +1079,7 @@ function getFilteredProjects() {
 
   return visibleProjects.filter((project) => {
     const matchesStatus =
-      !projectFilterState.status || project.references.some((reference) => reference.status === projectFilterState.status);
+      !projectFilterState.status || project.references.some((reference) => getAdminStatus(reference) === projectFilterState.status);
 
     if (!matchesStatus) {
       return false;
@@ -1073,7 +1144,7 @@ function renderOngoingProjects() {
             <li>
               <span class="reference-id">${reference.referenceNumber}</span>
               <span>${reference.versionLabel}</span>
-              <span class="reference-status">${reference.status}</span>
+              <span class="reference-status">${getAdminStatus(reference)}</span>
               <button
                 type="button"
                 class="link-btn"
@@ -1151,7 +1222,8 @@ function createProjectFromForm() {
     return {
       referenceNumber: getNextReferenceNumber(),
       versionLabel: `Version ${index + 1}`,
-      status: instructions || 'Quote details captured',
+      status: getDefaultAdminStatus(),
+      factoryStatus: getDefaultFactoryStatus(),
       adminRenderings: [],
       designBrief: {
         styleSku,
@@ -1297,7 +1369,7 @@ factoryQueueBody?.addEventListener('click', (event) => {
       return;
     }
 
-    reference.status = 'Completed';
+    setFactoryStatus(reference, 'Completed');
     project.updatedAt = new Date().toISOString().slice(0, 10);
     renderFactoryQueue();
 
@@ -1390,6 +1462,11 @@ factoryDetailForm?.addEventListener('submit', (event) => {
   reference.factoryDetails.finishedMeasurementsCad = factoryFinishedMeasurementsInput?.value.trim() || '';
   reference.factoryDetails.specSheet = factorySpecSheetInput?.value.trim() || '';
   reference.factoryDetails.viewerLink = factoryViewerLinkInput?.value.trim() || '';
+  const nextFactoryStatus = factoryStatusInput?.value;
+  if (nextFactoryStatus) {
+    setFactoryStatus(reference, nextFactoryStatus);
+  }
+
   reference.factoryDetails.fiveAnglesRender = (factoryFiveAnglesRenderInput?.value || '')
     .split(',')
     .map((item, index) => item.trim())
@@ -1477,9 +1554,9 @@ adminDetailForm?.addEventListener('submit', (event) => {
     return;
   }
 
-  const nextStatus = adminStatusInput.value.trim();
+  const nextStatus = adminStatusInput?.value;
   if (nextStatus) {
-    reference.status = nextStatus;
+    setAdminStatus(reference, nextStatus);
   }
 
   const renderingName = adminRenderingName.value.trim();
@@ -1566,6 +1643,8 @@ factoryStatusFilter?.addEventListener('change', () => {
   factoryFilterState.status = factoryStatusFilter.value;
   renderFactoryQueue();
 });
+
+ongoingProjects.forEach((project) => project.references.forEach((reference) => ensureReferenceStatuses(reference)));
 
 createVersionCard();
 renderFactoryShapeConfig();
