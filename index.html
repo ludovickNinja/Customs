@@ -156,6 +156,39 @@
                   </div>
                 </section>
 
+                <section class="version-renderings card inner-card">
+                  <div class="renderings-header">
+                    <div>
+                      <h3>Renderings</h3>
+                      <p>Factory-provided viewer, render angles, and spec sheet will appear here when uploaded.</p>
+                    </div>
+                  </div>
+
+                  <div id="renderings-empty-state" class="renderings-empty-state hidden">
+                    No factory renderings have been uploaded for this version yet.
+                  </div>
+
+                  <div id="renderings-content" class="renderings-content">
+                    <div class="renderings-block">
+                      <div class="renderings-block-header">
+                        <h4>3D Viewer</h4>
+                        <a id="renderings-viewer-link" class="link-btn hidden" href="#" target="_blank" rel="noopener noreferrer">Open viewer in new tab</a>
+                      </div>
+                      <div id="renderings-viewer-frame" class="renderings-viewer-frame"></div>
+                    </div>
+
+                    <div class="renderings-block">
+                      <h4>5 Angle Renders</h4>
+                      <div id="renderings-gallery" class="renderings-gallery"></div>
+                    </div>
+
+                    <div class="renderings-block">
+                      <h4>Spec Sheet</h4>
+                      <div id="renderings-spec-sheet" class="renderings-spec-sheet"></div>
+                    </div>
+                  </div>
+                </section>
+
                 <section class="version-right-column">
                   <article class="card inner-card pricing-card">
                     <h3>Pricing</h3>
@@ -349,7 +382,7 @@
 
                 <label>
                   5 Angles Render
-                  <input id="factory-five-angles-render" type="text" placeholder="Folder, link, or file names" required />
+                  <input id="factory-five-angles-render" type="text" placeholder="Comma-separated angle labels or file names" required />
                 </label>
               </div>
 

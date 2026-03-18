@@ -601,6 +601,90 @@ small {
   min-width: 110px;
 }
 
+
+.version-renderings {
+  display: grid;
+  gap: 18px;
+}
+
+.renderings-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.renderings-content,
+.renderings-block {
+  display: grid;
+  gap: 12px;
+}
+
+.renderings-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.renderings-empty-state,
+.renderings-placeholder,
+.renderings-spec-sheet p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.renderings-viewer-frame {
+  min-height: 340px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.renderings-viewer-frame iframe {
+  width: 100%;
+  min-height: 340px;
+  border: 0;
+}
+
+.renderings-viewer-frame .renderings-placeholder {
+  padding: 24px;
+}
+
+.renderings-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.render-angle-card {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.render-angle-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #dbeafe;
+}
+
+.render-angle-card figcaption {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.renderings-spec-sheet {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+}
+
 @media (max-width: 900px) {
   #customer-view {
     grid-template-columns: 1fr;

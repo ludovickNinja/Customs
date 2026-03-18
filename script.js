@@ -14,6 +14,12 @@ const projectResultsMeta = document.getElementById('project-results-meta');
 const versionDetailMeta = document.getElementById('version-detail-meta');
 const designBriefFields = document.getElementById('design-brief-fields');
 const designBriefFiles = document.getElementById('design-brief-files');
+const renderingsEmptyState = document.getElementById('renderings-empty-state');
+const renderingsContent = document.getElementById('renderings-content');
+const renderingsViewerLink = document.getElementById('renderings-viewer-link');
+const renderingsViewerFrame = document.getElementById('renderings-viewer-frame');
+const renderingsGallery = document.getElementById('renderings-gallery');
+const renderingsSpecSheet = document.getElementById('renderings-spec-sheet');
 const versionPricing = document.getElementById('version-pricing');
 const discussionThread = document.getElementById('discussion-thread');
 const discussionForm = document.getElementById('discussion-form');
@@ -348,7 +354,7 @@ function getDefaultFactoryDetails() {
     finishedMeasurementsCad: '',
     specSheet: '',
     viewerLink: '',
-    fiveAnglesRender: '',
+    fiveAnglesRender: [],
     diamondBreakdown: [
       { quantity: '', shape: '', measurements: '', quality: '', tcw: '', cost: '' },
     ],
@@ -361,12 +367,106 @@ function ensureFactoryDetails(reference) {
     return;
   }
 
+  if (!Array.isArray(reference.factoryDetails.fiveAnglesRender)) {
+    const legacyRenderValue = reference.factoryDetails.fiveAnglesRender;
+    reference.factoryDetails.fiveAnglesRender = legacyRenderValue
+      ? legacyRenderValue.split(',').map((item) => item.trim()).filter(Boolean)
+      : [];
+  }
+
   if (!Array.isArray(reference.factoryDetails.diamondBreakdown) || !reference.factoryDetails.diamondBreakdown.length) {
     reference.factoryDetails.diamondBreakdown = [
       { quantity: '', shape: '', measurements: '', quality: '', tcw: '', cost: '' },
     ];
   }
 }
+
+
+function createPlaceholderRenderData(referenceNumber, angleLabel) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#eff6ff" />
+          <stop offset="100%" stop-color="#dbeafe" />
+        </linearGradient>
+      </defs>
+      <rect width="800" height="600" rx="36" fill="url(#bg)" />
+      <circle cx="400" cy="315" r="140" fill="none" stroke="#64748b" stroke-width="24" />
+      <ellipse cx="400" cy="220" rx="84" ry="64" fill="#f8fafc" stroke="#94a3b8" stroke-width="14" />
+      <text x="400" y="505" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#1e293b">${referenceNumber} • ${angleLabel}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function renderVersionRenderings(reference) {
+  if (!renderingsEmptyState || !renderingsContent || !renderingsViewerFrame || !renderingsGallery || !renderingsSpecSheet || !renderingsViewerLink) {
+    return;
+  }
+
+  ensureFactoryDetails(reference);
+  const details = reference.factoryDetails;
+  const hasViewer = Boolean(details.viewerLink);
+  const hasGallery = Array.isArray(details.fiveAnglesRender) && details.fiveAnglesRender.length > 0;
+  const hasSpecSheet = Boolean(details.specSheet);
+  const hasRenderings = hasViewer || hasGallery || hasSpecSheet;
+
+  renderingsEmptyState.classList.toggle('hidden', hasRenderings);
+  renderingsContent.classList.toggle('hidden', !hasRenderings);
+
+  if (hasViewer) {
+    renderingsViewerLink.href = details.viewerLink;
+    renderingsViewerLink.classList.remove('hidden');
+    renderingsViewerFrame.innerHTML = `<iframe src="${details.viewerLink}" title="Factory rendering viewer" loading="lazy" referrerpolicy="no-referrer"></iframe>`;
+  } else {
+    renderingsViewerLink.classList.add('hidden');
+    renderingsViewerLink.removeAttribute('href');
+    renderingsViewerFrame.innerHTML = '<p class="renderings-placeholder">Viewer link will appear here after the factory uploads it.</p>';
+  }
+
+  if (hasGallery) {
+    renderingsGallery.innerHTML = details.fiveAnglesRender
+      .map(
+        (item, index) => `
+          <figure class="render-angle-card">
+            <img src="${item.url || item}" alt="${item.label || `Render angle ${index + 1}`}" loading="lazy" />
+            <figcaption>${item.label || `Angle ${index + 1}`}</figcaption>
+          </figure>
+        `
+      )
+      .join('');
+  } else {
+    renderingsGallery.innerHTML = '<p class="renderings-placeholder">Five render angles will appear here after the factory uploads them.</p>';
+  }
+
+  if (hasSpecSheet) {
+    const isUrl = /^https?:/i.test(details.specSheet);
+    renderingsSpecSheet.innerHTML = isUrl
+      ? `<a href="${details.specSheet}" target="_blank" rel="noopener noreferrer">Open spec sheet</a>`
+      : `<p>${details.specSheet}</p>`;
+  } else {
+    renderingsSpecSheet.innerHTML = '<p class="renderings-placeholder">Spec sheet not uploaded yet.</p>';
+  }
+}
+
+ongoingProjects[0].references[0].factoryDetails = {
+  goldWeight: '8.4g',
+  totalPrice: '$2,460',
+  finishedMeasurementsCad: 'solitaire_v1_final.3dm',
+  specSheet: 'solitaire_v1_spec_sheet.pdf',
+  viewerLink: 'https://viewer.crownring.com/?id=boahqydCRq-qH-WcXZyLaQ',
+  fiveAnglesRender: [
+    { label: 'Front View', url: createPlaceholderRenderData('R50001', 'Front View') },
+    { label: 'Profile View', url: createPlaceholderRenderData('R50001', 'Profile View') },
+    { label: 'Top View', url: createPlaceholderRenderData('R50001', 'Top View') },
+    { label: 'Perspective View', url: createPlaceholderRenderData('R50001', 'Perspective View') },
+    { label: 'Detail View', url: createPlaceholderRenderData('R50001', 'Detail View') },
+  ],
+  diamondBreakdown: [
+    { quantity: '1', shape: 'Round', measurements: '1.25ct', quality: 'VS1 / F', tcw: '1.25', cost: '$1,240' },
+  ],
+};
 
 const expandedQuotes = new Set(ongoingProjects.slice(0, 1).map((project) => project.quoteNumber));
 
@@ -566,6 +666,7 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   `;
 
   discussionThread.innerHTML = getDiscussionMarkup(reference.discussion);
+  renderVersionRenderings(reference);
   renderAdminAssets(reference);
 
   if (currentMode === 'admin') {
@@ -719,7 +820,7 @@ function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
   if (factoryFinishedMeasurementsInput) factoryFinishedMeasurementsInput.value = details.finishedMeasurementsCad || '';
   if (factorySpecSheetInput) factorySpecSheetInput.value = details.specSheet || '';
   if (factoryViewerLinkInput) factoryViewerLinkInput.value = details.viewerLink || '';
-  if (factoryFiveAnglesRenderInput) factoryFiveAnglesRenderInput.value = details.fiveAnglesRender || '';
+  if (factoryFiveAnglesRenderInput) factoryFiveAnglesRenderInput.value = details.fiveAnglesRender.map((item) => item.label || item).join(', ');
 
   renderFactoryDiamondBreakdownRows(details.diamondBreakdown);
 }
@@ -1212,7 +1313,11 @@ factoryDetailForm?.addEventListener('submit', (event) => {
   reference.factoryDetails.finishedMeasurementsCad = factoryFinishedMeasurementsInput?.value.trim() || '';
   reference.factoryDetails.specSheet = factorySpecSheetInput?.value.trim() || '';
   reference.factoryDetails.viewerLink = factoryViewerLinkInput?.value.trim() || '';
-  reference.factoryDetails.fiveAnglesRender = factoryFiveAnglesRenderInput?.value.trim() || '';
+  reference.factoryDetails.fiveAnglesRender = (factoryFiveAnglesRenderInput?.value || '')
+    .split(',')
+    .map((item, index) => item.trim())
+    .filter(Boolean)
+    .map((label, index) => ({ label, url: createPlaceholderRenderData(reference.referenceNumber, label || `Angle ${index + 1}`) }));
 
   project.updatedAt = new Date().toISOString().slice(0, 10);
   renderFactoryQueue();
