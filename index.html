@@ -147,13 +147,37 @@
               <p id="version-detail-meta" class="project-intro"></p>
 
               <div class="version-detail-layout">
-                <section class="version-brief card inner-card">
-                  <h3>Design Brief</h3>
-                  <dl id="design-brief-fields" class="brief-grid"></dl>
-                  <div>
-                    <h4>Files Provided by Customer</h4>
-                    <ul id="design-brief-files" class="file-list"></ul>
-                  </div>
+                <section class="version-left-column">
+                  <section class="version-brief card inner-card">
+                    <h3>Design Brief</h3>
+                    <dl id="design-brief-fields" class="brief-grid"></dl>
+                    <div>
+                      <h4>Files Provided by Customer</h4>
+                      <ul id="design-brief-files" class="file-list"></ul>
+                    </div>
+                  </section>
+
+                  <article class="card inner-card pricing-card">
+                    <h3>Pricing</h3>
+                    <div id="version-pricing"></div>
+                  </article>
+
+                  <article class="card inner-card discussion-card">
+                    <h3>Discussion</h3>
+                    <div id="discussion-thread" class="discussion-thread" aria-live="polite"></div>
+
+                    <form id="discussion-form" class="discussion-form">
+                      <label for="discussion-input">Request a change</label>
+                      <textarea
+                        id="discussion-input"
+                        name="discussionInput"
+                        rows="3"
+                        placeholder="Type your revision request here..."
+                        required
+                      ></textarea>
+                      <button type="submit" class="primary-btn">Send message</button>
+                    </form>
+                  </article>
                 </section>
 
                 <section class="version-renderings card inner-card">
@@ -187,30 +211,6 @@
                       <div id="renderings-spec-sheet" class="renderings-spec-sheet"></div>
                     </div>
                   </div>
-                </section>
-
-                <section class="version-right-column">
-                  <article class="card inner-card pricing-card">
-                    <h3>Pricing</h3>
-                    <div id="version-pricing"></div>
-                  </article>
-
-                  <article class="card inner-card discussion-card">
-                    <h3>Discussion</h3>
-                    <div id="discussion-thread" class="discussion-thread" aria-live="polite"></div>
-
-                    <form id="discussion-form" class="discussion-form">
-                      <label for="discussion-input">Request a change</label>
-                      <textarea
-                        id="discussion-input"
-                        name="discussionInput"
-                        rows="3"
-                        placeholder="Type your revision request here..."
-                        required
-                      ></textarea>
-                      <button type="submit" class="primary-btn">Send message</button>
-                    </form>
-                  </article>
                 </section>
               </div>
             </article>

@@ -408,6 +408,12 @@ small {
   align-items: start;
 }
 
+.version-left-column {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
 .brief-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -429,11 +435,6 @@ small {
 .file-list {
   margin: 10px 0 0;
   padding-left: 20px;
-}
-
-.version-right-column {
-  display: grid;
-  gap: 16px;
 }
 
 .pricing-card p {
