@@ -31,6 +31,7 @@ const factoryView = document.getElementById('factory-view');
 const adminQueueBody = document.getElementById('admin-queue-body');
 const adminSummaryMeta = document.getElementById('admin-summary-meta');
 const adminDetailMeta = document.getElementById('admin-detail-meta');
+const adminDesignBriefFields = document.getElementById('admin-design-brief-fields');
 const adminDetailForm = document.getElementById('admin-detail-form');
 const adminStatusInput = document.getElementById('admin-status-input');
 const adminAssignedFactoryField = document.getElementById('admin-assigned-factory-field');
@@ -48,6 +49,7 @@ const factoryFiltersForm = document.getElementById('factory-filters');
 const factorySearchInput = document.getElementById('factory-search');
 const factoryStatusFilter = document.getElementById('factory-status-filter');
 const factoryDetailMeta = document.getElementById('factory-detail-meta');
+const factoryDesignBriefFields = document.getElementById('factory-design-brief-fields');
 const factoryDetailForm = document.getElementById('factory-detail-form');
 const factoryGoldWeightInput = document.getElementById('factory-gold-weight');
 const factoryTotalPriceInput = document.getElementById('factory-total-price');
@@ -107,11 +109,23 @@ function normalizeStatus(currentStatus, allowedStatuses, fallbackStatus) {
   return allowedStatuses.includes(currentStatus) ? currentStatus : fallbackStatus;
 }
 
+function ensureDesignBrief(reference) {
+  if (!reference.designBrief) {
+    reference.designBrief = {};
+  }
+
+  reference.designBrief.needToProvide = reference.designBrief.needToProvide || {
+    renderings: false,
+    viewer3d: false,
+  };
+}
+
 function ensureReferenceStatuses(reference) {
   if (!reference) {
     return;
   }
 
+  ensureDesignBrief(reference);
   reference.adminStatus = normalizeStatus(reference.adminStatus || reference.status, ADMIN_PROJECT_STATUSES, getDefaultAdminStatus());
   reference.factoryStatus = normalizeStatus(reference.factoryStatus, FACTORY_PROJECT_STATUSES, getDefaultFactoryStatus());
   reference.assignedFactory = ASSIGNABLE_FACTORIES.includes(reference.assignedFactory) ? reference.assignedFactory : '';
@@ -719,6 +733,44 @@ function renderAdminAssets(reference) {
   adminRenderingsList.innerHTML = reference.adminRenderings.map((file) => `<li>${file}</li>`).join('');
 }
 
+function formatNeedToProvide(needToProvide = {}) {
+  const selections = [];
+
+  if (needToProvide.renderings) selections.push('Renderings');
+  if (needToProvide.viewer3d) selections.push('3D Viewer');
+
+  return selections.length ? selections.join(', ') : '—';
+}
+
+function getDesignBriefEntries(reference, includeAccount = false, accountName = '') {
+  const briefEntries = [];
+
+  if (includeAccount) {
+    briefEntries.push(['Account', accountName || '—']);
+  }
+
+  briefEntries.push(
+    ['Style / SKU', reference.designBrief.styleSku || '—'],
+    ['Metal', reference.designBrief.metal || '—'],
+    ['Size', reference.designBrief.size || '—'],
+    ['Stone Dimension & Description', reference.designBrief.stoneDescription || '—'],
+    ['Instructions', reference.designBrief.instructions || '—'],
+    ['Need to Provide', formatNeedToProvide(reference.designBrief.needToProvide)],
+  );
+
+  return briefEntries;
+}
+
+function renderDesignBriefFields(container, entries) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = entries
+    .map(([term, value]) => `<div><dt>${term}</dt><dd>${value}</dd></div>`)
+    .join('');
+}
+
 function openVersionDetail(quoteNumber, referenceNumber) {
   const project = ongoingProjects.find((candidate) => candidate.quoteNumber === quoteNumber);
   if (!project) {
@@ -736,18 +788,8 @@ function openVersionDetail(quoteNumber, referenceNumber) {
 
   versionDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${accountNames[project.account]} • ${project.customerRequest}`;
 
-  const briefEntries = [
-    ['Account', accountNames[project.account]],
-    ['Style / SKU', reference.designBrief.styleSku || '—'],
-    ['Metal', reference.designBrief.metal || '—'],
-    ['Size', reference.designBrief.size || '—'],
-    ['Stone Details', reference.designBrief.stoneDescription || '—'],
-    ['Instructions', reference.designBrief.instructions || '—'],
-  ];
-
-  designBriefFields.innerHTML = briefEntries
-    .map(([term, value]) => `<div><dt>${term}</dt><dd>${value}</dd></div>`)
-    .join('');
+  const briefEntries = getDesignBriefEntries(reference, true, accountNames[project.account]);
+  renderDesignBriefFields(designBriefFields, briefEntries);
 
   designBriefFiles.innerHTML = reference.designBrief.files.length
     ? reference.designBrief.files.map((file) => `<li>${file}</li>`).join('')
@@ -772,6 +814,7 @@ function openVersionDetail(quoteNumber, referenceNumber) {
     adminPricingBreakdown.value = reference.pricing.unitBreakdown;
     adminPricingTimeline.value = reference.pricing.timeline;
     adminDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
+    renderDesignBriefFields(adminDesignBriefFields, getDesignBriefEntries(reference));
     if (adminConversationThread) {
       adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
     }
@@ -973,6 +1016,7 @@ function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
   if (factoryDetailMeta) {
     factoryDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
   }
+  renderDesignBriefFields(factoryDesignBriefFields, getDesignBriefEntries(reference));
 
   if (factoryStatusInput) {
     factoryStatusInput.innerHTML = getStatusOptionsMarkup(FACTORY_PROJECT_STATUSES, getFactoryStatus(reference));
@@ -1236,6 +1280,10 @@ function createProjectFromForm() {
     const stoneDescription = card.querySelector('[data-field="stoneDescription"]').value.trim();
     const uploadInput = card.querySelector('[data-field="uploads"]');
     const files = [...uploadInput.files].map((file) => file.name);
+    const needToProvide = {
+      renderings: card.querySelector('[data-field="renderings"]').checked,
+      viewer3d: card.querySelector('[data-field="viewer3d"]').checked,
+    };
 
     return {
       referenceNumber: getNextReferenceNumber(),
@@ -1250,6 +1298,7 @@ function createProjectFromForm() {
         stoneDescription,
         instructions,
         files,
+        needToProvide,
       },
       pricing: {
         estimatedTotal: 'Pending quote calculation',
