@@ -511,6 +511,7 @@ function renderVersionRenderings(reference) {
 
   ensureReferenceStatuses(reference);
   ensureFactoryDetails(reference);
+  syncPricingBreakdownFromFactory(reference);
   const details = reference.factoryDetails;
   const hasViewer = Boolean(details.viewerLink);
   const hasGallery = Array.isArray(details.fiveAnglesRender) && details.fiveAnglesRender.length > 0;
@@ -783,6 +784,7 @@ function openVersionDetail(quoteNumber, referenceNumber) {
   }
 
   ensureReferenceStatuses(reference);
+  syncPricingBreakdownFromFactory(reference);
 
   activeVersionContext = { quoteNumber, referenceNumber };
 
@@ -947,6 +949,45 @@ function renderFactoryStoneSummary(rows) {
   factoryStoneSummary.textContent = summary || 'Add quantity, shape, quality, and TCW to see the stone summary.';
 }
 
+function getMetalKarat(reference) {
+  const metal = reference?.designBrief?.metal || '';
+  const match = metal.match(/\b\d+K\b/i);
+  return match ? match[0].toUpperCase() : metal.trim();
+}
+
+function buildPricingBreakdown(reference) {
+  if (!reference) {
+    return '';
+  }
+
+  ensureFactoryDetails(reference);
+  const parts = [];
+  const gramWeight = reference.factoryDetails.goldWeight?.trim();
+  const metalKarat = getMetalKarat(reference);
+  const diamondSummary = formatStoneSummary(reference.factoryDetails.diamondBreakdown || []);
+
+  if (gramWeight) {
+    parts.push(`Gram Weight: ${gramWeight}`);
+  }
+
+  if (metalKarat) {
+    parts.push(`Metal Karat: ${metalKarat}`);
+  }
+
+  if (diamondSummary) {
+    parts.push(`Diamond Summary: ${diamondSummary}`);
+  }
+
+  return parts.join(' • ');
+}
+
+function syncPricingBreakdownFromFactory(reference) {
+  const nextBreakdown = buildPricingBreakdown(reference);
+  if (nextBreakdown) {
+    reference.pricing.unitBreakdown = nextBreakdown;
+  }
+}
+
 function renderFactoryShapeConfig() {
   if (!factoryShapeConfigOptions) {
     return;
@@ -1009,6 +1050,7 @@ function openFactoryReferenceDetail(quoteNumber, referenceNumber) {
 
   ensureReferenceStatuses(reference);
   ensureFactoryDetails(reference);
+  syncPricingBreakdownFromFactory(reference);
   const details = reference.factoryDetails;
 
   activeFactoryContext = { quoteNumber, referenceNumber };
@@ -1539,6 +1581,8 @@ factoryDetailForm?.addEventListener('submit', (event) => {
     .map((item, index) => item.trim())
     .filter(Boolean)
     .map((label, index) => ({ label, url: createPlaceholderRenderData(reference.referenceNumber, label || `Angle ${index + 1}`) }));
+
+  syncPricingBreakdownFromFactory(reference);
 
   project.updatedAt = new Date().toISOString().slice(0, 10);
   renderFactoryQueue();
