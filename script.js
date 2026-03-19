@@ -158,10 +158,10 @@ function syncAssignedFactoryField(nextStatus, assignedFactory = '') {
     return;
   }
 
-  const shouldShow = nextStatus === 'Assigned';
-  adminAssignedFactoryField.classList.toggle('hidden', !shouldShow);
-  adminAssignedFactoryInput.required = shouldShow;
-  adminAssignedFactoryInput.value = shouldShow ? assignedFactory : '';
+  const shouldRequire = nextStatus === 'Assigned';
+  adminAssignedFactoryField.classList.remove('hidden');
+  adminAssignedFactoryInput.required = shouldRequire;
+  adminAssignedFactoryInput.value = assignedFactory;
 }
 
 function getStatusOptionsMarkup(statuses, selectedStatus) {
@@ -1631,7 +1631,7 @@ adminDetailForm?.addEventListener('submit', (event) => {
   if (nextStatus) {
     setAdminStatus(reference, nextStatus);
   }
-  reference.assignedFactory = nextStatus === 'Assigned' ? nextAssignedFactory : '';
+  reference.assignedFactory = nextAssignedFactory;
 
   const renderingName = adminRenderingName.value.trim();
   if (renderingName) {
