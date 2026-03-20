@@ -36,6 +36,13 @@ const adminDetailForm = document.getElementById('admin-detail-form');
 const adminStatusInput = document.getElementById('admin-status-input');
 const adminAssignedFactoryField = document.getElementById('admin-assigned-factory-field');
 const adminAssignedFactoryInput = document.getElementById('admin-assigned-factory-input');
+const adminStyleSkuInput = document.getElementById('admin-style-sku-input');
+const adminMetalInput = document.getElementById('admin-metal-input');
+const adminSizeInput = document.getElementById('admin-size-input');
+const adminStoneDescriptionInput = document.getElementById('admin-stone-description-input');
+const adminInstructionsInput = document.getElementById('admin-instructions-input');
+const adminNeedRenderingsInput = document.getElementById('admin-need-renderings-input');
+const adminNeedViewerInput = document.getElementById('admin-need-viewer-input');
 const factoryStatusInput = document.getElementById('factory-status-input');
 const adminRenderingName = document.getElementById('admin-rendering-name');
 const adminMessageInput = document.getElementById('admin-message-input');
@@ -816,6 +823,13 @@ function openVersionDetail(quoteNumber, referenceNumber) {
     adminPricingBreakdown.value = reference.pricing.unitBreakdown;
     adminPricingTimeline.value = reference.pricing.timeline;
     adminDetailMeta.textContent = `${project.quoteNumber} • ${reference.referenceNumber} (${reference.versionLabel}) • ${project.customerRequest}`;
+    if (adminStyleSkuInput) adminStyleSkuInput.value = reference.designBrief.styleSku || '';
+    if (adminMetalInput) adminMetalInput.value = reference.designBrief.metal || '';
+    if (adminSizeInput) adminSizeInput.value = reference.designBrief.size || '';
+    if (adminStoneDescriptionInput) adminStoneDescriptionInput.value = reference.designBrief.stoneDescription || '';
+    if (adminInstructionsInput) adminInstructionsInput.value = reference.designBrief.instructions || '';
+    if (adminNeedRenderingsInput) adminNeedRenderingsInput.checked = Boolean(reference.designBrief.needToProvide?.renderings);
+    if (adminNeedViewerInput) adminNeedViewerInput.checked = Boolean(reference.designBrief.needToProvide?.viewer3d);
     renderDesignBriefFields(adminDesignBriefFields, getDesignBriefEntries(reference));
     if (adminConversationThread) {
       adminConversationThread.innerHTML = getDiscussionMarkup(reference.discussion);
@@ -1683,6 +1697,16 @@ adminDetailForm?.addEventListener('submit', (event) => {
     adminRenderingName.value = '';
   }
 
+  reference.designBrief.styleSku = adminStyleSkuInput?.value.trim() || '';
+  reference.designBrief.metal = adminMetalInput?.value.trim() || reference.designBrief.metal;
+  reference.designBrief.size = adminSizeInput?.value.trim() || '';
+  reference.designBrief.stoneDescription = adminStoneDescriptionInput?.value.trim() || '';
+  reference.designBrief.instructions = adminInstructionsInput?.value.trim() || reference.designBrief.instructions;
+  reference.designBrief.needToProvide = {
+    renderings: Boolean(adminNeedRenderingsInput?.checked),
+    viewer3d: Boolean(adminNeedViewerInput?.checked),
+  };
+
   reference.pricing.estimatedTotal = adminPricingTotal.value.trim() || reference.pricing.estimatedTotal;
   reference.pricing.unitBreakdown = adminPricingBreakdown.value.trim() || reference.pricing.unitBreakdown;
   reference.pricing.timeline = adminPricingTimeline.value.trim() || reference.pricing.timeline;
@@ -1704,6 +1728,9 @@ adminDetailForm?.addEventListener('submit', (event) => {
     <p><strong>Breakdown:</strong> ${reference.pricing.unitBreakdown}</p>
     <p><strong>Timeline:</strong> ${reference.pricing.timeline}</p>
   `;
+
+  renderDesignBriefFields(designBriefFields, getDesignBriefEntries(reference, true, accountNames[project.account]));
+  renderDesignBriefFields(adminDesignBriefFields, getDesignBriefEntries(reference));
 
   renderOngoingProjects();
   renderAdminQueue();
