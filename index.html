@@ -253,12 +253,48 @@
               <h3>Admin Detail</h3>
               <p id="admin-detail-meta" class="project-intro">Select a request in the queue.</p>
 
-              <section class="detail-brief card-subsection" aria-label="Submitted request details">
-                <h4>Submitted Request Details</h4>
-                <dl id="admin-design-brief-fields" class="brief-grid detail-brief-grid"></dl>
-              </section>
-
               <form id="admin-detail-form" class="admin-detail-form">
+                <section class="detail-brief card-subsection" aria-label="Submitted request details">
+                  <h4>Submitted Request Details</h4>
+                  <dl id="admin-design-brief-fields" class="brief-grid detail-brief-grid"></dl>
+                </section>
+
+                <section class="card-subsection" aria-label="Edit design brief details">
+                  <h4>Edit Design Brief</h4>
+                  <div class="grid-2">
+                    <label>
+                      Style / SKU
+                      <input id="admin-style-sku-input" type="text" />
+                    </label>
+
+                    <label>
+                      Metal
+                      <input id="admin-metal-input" type="text" required />
+                    </label>
+
+                    <label>
+                      Size
+                      <input id="admin-size-input" type="text" />
+                    </label>
+
+                    <label>
+                      Stone Dimension &amp; Description
+                      <textarea id="admin-stone-description-input" rows="3"></textarea>
+                    </label>
+
+                    <fieldset class="need-to-provide admin-need-to-provide-fieldset">
+                      <legend>Need to Provide</legend>
+                      <label><input id="admin-need-renderings-input" type="checkbox" /> Renderings</label>
+                      <label><input id="admin-need-viewer-input" type="checkbox" /> 3D Viewer</label>
+                    </fieldset>
+                  </div>
+
+                  <label>
+                    Instructions
+                    <textarea id="admin-instructions-input" rows="4" required></textarea>
+                  </label>
+                </section>
+
                 <div class="grid-2">
                   <label>
                     Status
