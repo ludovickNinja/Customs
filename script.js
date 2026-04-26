@@ -30,6 +30,11 @@ const adminView = document.getElementById('admin-view');
 const factoryView = document.getElementById('factory-view');
 const adminQueueBody = document.getElementById('admin-queue-body');
 const adminSummaryMeta = document.getElementById('admin-summary-meta');
+const adminFiltersForm = document.getElementById('admin-filters');
+const adminSearchInput = document.getElementById('admin-search');
+const adminStatusFilter = document.getElementById('admin-status-filter');
+const adminFactoryFilter = document.getElementById('admin-factory-filter');
+const clearAdminFiltersButton = document.getElementById('clear-admin-filters');
 const adminDetailMeta = document.getElementById('admin-detail-meta');
 const adminDesignBriefFields = document.getElementById('admin-design-brief-fields');
 const adminDetailForm = document.getElementById('admin-detail-form');
@@ -97,6 +102,12 @@ const projectFilterState = {
 const factoryFilterState = {
   search: '',
   status: '',
+};
+
+const adminFilterState = {
+  search: '',
+  status: '',
+  assignedFactory: '',
 };
 
 
@@ -850,12 +861,23 @@ function renderAdminQueue() {
     return;
   }
 
+  syncAdminFilterOptions();
   const queueItems = getAllReferencesForQueue();
+  const visibleQueueItems = getVisibleAdminReferences(queueItems);
   const attentionCount = queueItems.filter(({ reference }) => !['Ready', 'Sent'].includes(getAdminStatus(reference))).length;
+  const filteredMessage = visibleQueueItems.length === queueItems.length
+    ? `Showing all ${queueItems.length} active reference(s)`
+    : `Showing ${visibleQueueItems.length} of ${queueItems.length} active reference(s)`;
 
-  adminSummaryMeta.textContent = `${queueItems.length} active reference(s) • ${attentionCount} needing attention`;
+  adminSummaryMeta.textContent = `${filteredMessage} • ${attentionCount} needing attention`;
 
-  adminQueueBody.innerHTML = queueItems
+  if (!visibleQueueItems.length) {
+    adminQueueBody.innerHTML =
+      '<tr><td class="empty-row" colspan="6">No admin queue items match your current filters.</td></tr>';
+    return;
+  }
+
+  adminQueueBody.innerHTML = visibleQueueItems
     .map(
       ({ project, reference }) => `
         <tr>
@@ -881,10 +903,62 @@ function renderAdminQueue() {
     )
     .join('');
 
-  if (currentMode === 'admin' && !activeVersionContext && queueItems.length) {
-    const [firstItem] = queueItems;
+  if (currentMode === 'admin' && !activeVersionContext && visibleQueueItems.length) {
+    const [firstItem] = visibleQueueItems;
     openVersionDetail(firstItem.project.quoteNumber, firstItem.reference.referenceNumber);
   }
+}
+
+function syncAdminFilterOptions() {
+  if (adminStatusFilter) {
+    adminStatusFilter.innerHTML = `
+      <option value="">All statuses</option>
+      ${ADMIN_PROJECT_STATUSES.map((status) => `<option value="${status}">${status}</option>`).join('')}
+    `;
+    adminStatusFilter.value = adminFilterState.status;
+  }
+
+  if (adminFactoryFilter) {
+    adminFactoryFilter.innerHTML = `
+      <option value="">All factories</option>
+      ${ASSIGNABLE_FACTORIES.map((factory) => `<option value="${factory}">${factory}</option>`).join('')}
+      <option value="unassigned">Unassigned</option>
+    `;
+    adminFactoryFilter.value = adminFilterState.assignedFactory;
+  }
+}
+
+function getVisibleAdminReferences(queueItems) {
+  const normalizedSearch = normalizeForSearch(adminFilterState.search);
+
+  return queueItems.filter(({ project, reference }) => {
+    const matchesStatus = !adminFilterState.status || getAdminStatus(reference) === adminFilterState.status;
+    const matchesFactory = !adminFilterState.assignedFactory
+      || (adminFilterState.assignedFactory === 'unassigned'
+        ? !reference.assignedFactory
+        : reference.assignedFactory === adminFilterState.assignedFactory);
+
+    if (!matchesStatus || !matchesFactory) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return [
+      project.quoteNumber,
+      reference.referenceNumber,
+      reference.versionLabel,
+      project.customerRequest,
+      project.salesPersonName,
+      getAdminStatus(reference),
+      reference.assignedFactory || 'Unassigned',
+    ]
+      .filter(Boolean)
+      .map((token) => token.toString().toLowerCase())
+      .some((token) => token.includes(normalizedSearch));
+  });
 }
 
 
@@ -1777,6 +1851,43 @@ clearProjectFiltersButton?.addEventListener('click', () => {
   }
 
   renderOngoingProjects();
+});
+
+adminFiltersForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+
+adminSearchInput?.addEventListener('input', () => {
+  adminFilterState.search = adminSearchInput.value;
+  renderAdminQueue();
+});
+
+adminStatusFilter?.addEventListener('change', () => {
+  adminFilterState.status = adminStatusFilter.value;
+  renderAdminQueue();
+});
+
+adminFactoryFilter?.addEventListener('change', () => {
+  adminFilterState.assignedFactory = adminFactoryFilter.value;
+  renderAdminQueue();
+});
+
+clearAdminFiltersButton?.addEventListener('click', () => {
+  adminFilterState.search = '';
+  adminFilterState.status = '';
+  adminFilterState.assignedFactory = '';
+
+  if (adminSearchInput) {
+    adminSearchInput.value = '';
+  }
+  if (adminStatusFilter) {
+    adminStatusFilter.value = '';
+  }
+  if (adminFactoryFilter) {
+    adminFactoryFilter.value = '';
+  }
+
+  renderAdminQueue();
 });
 
 

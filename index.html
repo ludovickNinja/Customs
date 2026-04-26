@@ -232,6 +232,32 @@
             <section class="card inner-card admin-queue-card">
               <h3>Request Queue</h3>
               <p class="project-intro">Select a version to update its status, assets, pricing, and messages.</p>
+              <form id="admin-filters" class="admin-filters" aria-label="Admin queue filters">
+                <label>
+                  Search
+                  <input
+                    id="admin-search"
+                    type="search"
+                    placeholder="Quote, reference, customer request, salesperson..."
+                  />
+                </label>
+
+                <label>
+                  Status
+                  <select id="admin-status-filter">
+                    <option value="">All statuses</option>
+                  </select>
+                </label>
+
+                <label>
+                  Factory
+                  <select id="admin-factory-filter">
+                    <option value="">All factories</option>
+                  </select>
+                </label>
+
+                <button type="button" id="clear-admin-filters" class="secondary-btn">Clear filters</button>
+              </form>
               <div class="projects-table-wrapper">
                 <table class="projects-table" aria-label="Admin request queue">
                   <thead>
