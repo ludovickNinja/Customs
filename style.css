@@ -539,6 +539,18 @@ small {
   margin-bottom: 0;
 }
 
+.admin-filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(160px, 200px) minmax(160px, 200px) auto;
+  gap: 12px;
+  align-items: end;
+  margin: 12px 0;
+}
+
+.admin-filters label {
+  display: block;
+}
+
 .queue-version-label {
   color: var(--muted);
   margin-top: 2px;
@@ -850,6 +862,11 @@ small {
   }
 
   .factory-filters {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .admin-filters {
     grid-template-columns: 1fr;
     width: 100%;
   }
