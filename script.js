@@ -3,6 +3,15 @@ const versionTemplate = document.getElementById('version-template');
 const addVersionButton = document.getElementById('add-version');
 const quoteForm = document.getElementById('quote-form');
 const accountInput = quoteForm?.querySelector('input[name="account"]');
+const salespeopleContainer = document.getElementById('salespeople-container');
+const salespersonTemplate = document.getElementById('salesperson-template');
+const addSalespersonButton = document.getElementById('add-salesperson');
+const wizardSteps = [...document.querySelectorAll('.wizard-step')];
+const wizardPanels = [...document.querySelectorAll('.wizard-panel')];
+const wizardBackButton = document.getElementById('wizard-back');
+const wizardNextButton = document.getElementById('wizard-next');
+const wizardSubmitButton = document.getElementById('wizard-submit');
+const reviewSummary = document.getElementById('review-summary');
 const modeButtons = [...document.querySelectorAll('.mode-btn')];
 const pageButtons = [...document.querySelectorAll('.side-nav-btn')];
 const projectsTableBody = document.getElementById('projects-table-body');
@@ -1394,10 +1403,20 @@ function getNextReferenceNumber() {
   return referenceNumber;
 }
 
+function collectSalespeople() {
+  return [...salespeopleContainer.querySelectorAll('.salesperson-card')].map((card) => ({
+    name: card.querySelector('[data-field="name"]').value.trim(),
+    email: card.querySelector('[data-field="email"]').value.trim(),
+  }));
+}
+
 function createProjectFromForm() {
   const formData = new FormData(quoteForm);
   const requestText = (formData.get('reference') || '').toString().trim() || 'General quote request';
-  const salesPersonName = (formData.get('salespersonName') || '').toString().trim() || 'Not provided';
+  const salespeople = collectSalespeople().filter((person) => person.name || person.email);
+  const salesPersonName = salespeople.length
+    ? salespeople.map((person) => person.name).filter(Boolean).join(' & ') || 'Not provided'
+    : 'Not provided';
 
   const projectAccount = ['admin', 'factory'].includes(currentMode) ? 'account1' : currentMode;
 
@@ -1451,6 +1470,7 @@ function createProjectFromForm() {
     account: projectAccount,
     customerRequest: requestText,
     salesPersonName,
+    salespeople,
     updatedAt: new Date().toISOString().slice(0, 10),
     references,
   };
@@ -1467,14 +1487,210 @@ function createProjectFromForm() {
   versionsContainer.innerHTML = '';
   createVersionCard();
 
+  salespeopleContainer.innerHTML = '';
+  createSalespersonCard();
+
+  setWizardStep(1);
   setPage('projects');
   alert(`Quote ${newProject.quoteNumber} generated for ${accountNames[projectAccount]} with ${references.length} reference(s).`);
 }
 
+function updateSalespersonTitles() {
+  const cards = [...salespeopleContainer.querySelectorAll('.salesperson-card')];
+  cards.forEach((card, index) => {
+    card.querySelector('.salesperson-title').textContent =
+      cards.length === 1 ? 'Salesperson' : `Salesperson ${index + 1}`;
+    card.querySelector('.salesperson-remove').hidden = cards.length === 1;
+  });
+}
+
+function createSalespersonCard() {
+  const fragment = salespersonTemplate.content.cloneNode(true);
+  const card = fragment.querySelector('.salesperson-card');
+  card.querySelector('.salesperson-remove').addEventListener('click', () => {
+    card.remove();
+    updateSalespersonTitles();
+  });
+  salespeopleContainer.appendChild(fragment);
+  updateSalespersonTitles();
+}
+
+let currentWizardStep = 1;
+const totalWizardSteps = 3;
+
+function validateStep(step) {
+  if (step === 1) {
+    const reference = quoteForm.querySelector('input[name="reference"]');
+    if (!reference.value.trim()) {
+      reference.focus();
+      return false;
+    }
+    const cards = [...salespeopleContainer.querySelectorAll('.salesperson-card')];
+    for (const card of cards) {
+      const name = card.querySelector('[data-field="name"]');
+      const email = card.querySelector('[data-field="email"]');
+      if (!name.value.trim()) {
+        name.focus();
+        return false;
+      }
+      if (!email.value.trim() || !email.checkValidity()) {
+        email.focus();
+        return false;
+      }
+    }
+    return true;
+  }
+  if (step === 2) {
+    const cards = [...versionsContainer.querySelectorAll('.version-card')];
+    if (!cards.length) {
+      return false;
+    }
+    for (const card of cards) {
+      const metal = card.querySelector('[data-field="metal"]');
+      const instructions = card.querySelector('[data-field="instructions"]');
+      if (!metal.value.trim()) {
+        metal.focus();
+        return false;
+      }
+      if (!instructions.value.trim()) {
+        instructions.focus();
+        return false;
+      }
+    }
+    return true;
+  }
+  return true;
+}
+
+function setWizardStep(step) {
+  currentWizardStep = Math.max(1, Math.min(totalWizardSteps, step));
+
+  wizardSteps.forEach((node) => {
+    const nodeStep = Number(node.dataset.step);
+    node.classList.toggle('is-active', nodeStep === currentWizardStep);
+    node.classList.toggle('is-complete', nodeStep < currentWizardStep);
+  });
+
+  wizardPanels.forEach((panel) => {
+    panel.classList.toggle('is-active', Number(panel.dataset.step) === currentWizardStep);
+  });
+
+  wizardBackButton.disabled = currentWizardStep === 1;
+  const isLast = currentWizardStep === totalWizardSteps;
+  wizardNextButton.classList.toggle('hidden', isLast);
+  wizardSubmitButton.classList.toggle('hidden', !isLast);
+
+  if (isLast) {
+    renderReviewSummary();
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[char]);
+}
+
+function renderReviewSummary() {
+  const formData = new FormData(quoteForm);
+  const account = (formData.get('account') || '').toString();
+  const reference = (formData.get('reference') || '').toString().trim() || '—';
+  const salespeople = collectSalespeople();
+
+  const peopleMarkup = salespeople.length
+    ? `<ul class="review-people">${salespeople
+        .map(
+          (person) => `
+            <li>
+              <span>${escapeHtml(person.name || '—')}</span>
+              <span class="review-person-email">${escapeHtml(person.email || '—')}</span>
+            </li>`
+        )
+        .join('')}</ul>`
+    : '<p>No salespeople added.</p>';
+
+  const designs = [...versionsContainer.querySelectorAll('.version-card')].map((card, index) => {
+    const get = (field) => card.querySelector(`[data-field="${field}"]`).value.trim();
+    const files = [...card.querySelector('[data-field="uploads"]').files].map((file) => file.name);
+    const need = [];
+    if (card.querySelector('[data-field="renderings"]').checked) need.push('Renderings');
+    if (card.querySelector('[data-field="viewer3d"]').checked) need.push('3D Viewer');
+    return {
+      title: `Design ${index + 1}`,
+      styleSku: get('styleSku') || '—',
+      metal: get('metal') || '—',
+      size: get('size') || '—',
+      stoneDescription: get('stoneDescription') || '—',
+      instructions: get('instructions') || '—',
+      files: files.length ? files.join(', ') : '—',
+      need: need.length ? need.join(', ') : '—',
+    };
+  });
+
+  const designsMarkup = designs.length
+    ? designs
+        .map(
+          (design) => `
+            <div class="review-design">
+              <h5 class="review-design-title">${escapeHtml(design.title)}</h5>
+              <dl class="review-grid">
+                <div><dt>Style #</dt><dd>${escapeHtml(design.styleSku)}</dd></div>
+                <div><dt>Metal</dt><dd>${escapeHtml(design.metal)}</dd></div>
+                <div><dt>Size</dt><dd>${escapeHtml(design.size)}</dd></div>
+                <div><dt>Need to Provide</dt><dd>${escapeHtml(design.need)}</dd></div>
+                <div style="grid-column: 1 / -1"><dt>Stone Dimension &amp; Description</dt><dd>${escapeHtml(design.stoneDescription)}</dd></div>
+                <div style="grid-column: 1 / -1"><dt>Instructions</dt><dd>${escapeHtml(design.instructions)}</dd></div>
+                <div style="grid-column: 1 / -1"><dt>Files</dt><dd>${escapeHtml(design.files)}</dd></div>
+              </dl>
+            </div>`
+        )
+        .join('')
+    : '<p>No designs added.</p>';
+
+  reviewSummary.innerHTML = `
+    <section class="review-section">
+      <h4>Request</h4>
+      <dl class="review-grid">
+        <div><dt>Account</dt><dd>${escapeHtml(account)}</dd></div>
+        <div><dt>PO# / Reference / Client</dt><dd>${escapeHtml(reference)}</dd></div>
+      </dl>
+    </section>
+    <section class="review-section">
+      <h4>Salespeople</h4>
+      ${peopleMarkup}
+    </section>
+    <section class="review-section">
+      <h4>Designs</h4>
+      ${designsMarkup}
+    </section>
+  `;
+}
+
 addVersionButton.addEventListener('click', createVersionCard);
+addSalespersonButton.addEventListener('click', createSalespersonCard);
 quoteForm.addEventListener('keydown', focusNextInputOnEnter);
+
+wizardBackButton.addEventListener('click', () => {
+  setWizardStep(currentWizardStep - 1);
+});
+
+wizardNextButton.addEventListener('click', () => {
+  if (!validateStep(currentWizardStep)) {
+    quoteForm.reportValidity();
+    return;
+  }
+  setWizardStep(currentWizardStep + 1);
+});
+
 quoteForm.addEventListener('submit', (event) => {
   event.preventDefault();
+  if (currentWizardStep !== totalWizardSteps) {
+    return;
+  }
   createProjectFromForm();
 });
 
@@ -1908,6 +2124,8 @@ factoryStatusFilter?.addEventListener('change', () => {
 ongoingProjects.forEach((project) => project.references.forEach((reference) => ensureReferenceStatuses(reference)));
 
 createVersionCard();
+createSalespersonCard();
+setWizardStep(1);
 renderFactoryShapeConfig();
 setMode('account1');
 setPage('home');

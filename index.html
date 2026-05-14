@@ -37,53 +37,81 @@
           </section>
 
           <section id="page-form" class="customer-page">
-            <article class="card">
+            <article class="card form-card">
               <header class="form-header">
-                <h2>Priority Quote Request Form</h2>
-                <p>Please fill out the form below to expedite the quoting process.</p>
+                <h2>Priority Quote Request</h2>
+                <p>A few quick steps to get your request quoted.</p>
               </header>
 
-              <form id="quote-form" class="quote-form">
-                <section class="card inner-card">
+              <ol id="wizard-steps" class="wizard-steps" aria-label="Form steps">
+                <li class="wizard-step is-active" data-step="1">
+                  <span class="wizard-step-index">1</span>
+                  <span class="wizard-step-label">Salespeople</span>
+                </li>
+                <li class="wizard-step" data-step="2">
+                  <span class="wizard-step-index">2</span>
+                  <span class="wizard-step-label">Designs</span>
+                </li>
+                <li class="wizard-step" data-step="3">
+                  <span class="wizard-step-index">3</span>
+                  <span class="wizard-step-label">Review</span>
+                </li>
+              </ol>
+
+              <form id="quote-form" class="quote-form" novalidate>
+                <section class="wizard-panel is-active" data-step="1" aria-label="Salespeople and request reference">
+                  <header class="wizard-panel-header">
+                    <h3>Who's this for?</h3>
+                    <p>Tell us about the request and the salespeople we'll be working with.</p>
+                  </header>
+
                   <div class="grid-2">
                     <label>
                       Account
-                      <input
-                        type="text"
-                        name="account"
-                        readonly
-                        required
-                      />
+                      <input type="text" name="account" readonly required />
                     </label>
 
                     <label>
                       PO# / Reference / Client Name (enter any one) <span class="required">*</span>
                       <input type="text" name="reference" required />
                     </label>
+                  </div>
 
-                    <label>
-                      Salesperson Name <span class="required">*</span>
-                      <input type="text" name="salespersonName" required />
-                    </label>
-
-                    <label>
-                      Salesperson Email <span class="required">*</span>
-                      <input type="email" name="salespersonEmail" required />
-                    </label>
+                  <div class="salespeople-block">
+                    <div class="card-title-row">
+                      <h4>Salespeople</h4>
+                      <button type="button" id="add-salesperson" class="secondary-btn">Add salesperson</button>
+                    </div>
+                    <div id="salespeople-container" class="salespeople-container"></div>
                   </div>
                 </section>
 
-                <section class="card inner-card">
-                  <div class="card-title-row">
-                    <h3>Reference Details</h3>
-                    <button type="button" id="add-version" class="secondary-btn">Add Version</button>
-                  </div>
+                <section class="wizard-panel" data-step="2" aria-label="Designs">
+                  <header class="wizard-panel-header">
+                    <h3>Designs</h3>
+                    <p>Add one or more designs to be quoted. Each design becomes its own reference.</p>
+                  </header>
 
                   <div id="versions-container" class="versions-container"></div>
+
+                  <div class="add-version-row">
+                    <button type="button" id="add-version" class="secondary-btn">Add another design</button>
+                  </div>
                 </section>
 
-                <div class="submit-row">
-                  <button type="submit" class="primary-btn">Submit Quote Request</button>
+                <section class="wizard-panel" data-step="3" aria-label="Review and submit">
+                  <header class="wizard-panel-header">
+                    <h3>Review</h3>
+                    <p>Take one last look before submitting.</p>
+                  </header>
+
+                  <div id="review-summary" class="review-summary" aria-live="polite"></div>
+                </section>
+
+                <div class="wizard-nav">
+                  <button type="button" id="wizard-back" class="secondary-btn" disabled>Back</button>
+                  <button type="button" id="wizard-next" class="primary-btn">Continue</button>
+                  <button type="submit" id="wizard-submit" class="primary-btn hidden">Submit Quote Request</button>
                 </div>
               </form>
             </article>
@@ -533,6 +561,25 @@
       </section>
 
     </main>
+
+    <template id="salesperson-template">
+      <article class="salesperson-card">
+        <div class="salesperson-header">
+          <h5 class="salesperson-title"></h5>
+          <button type="button" class="remove-btn salesperson-remove">Remove</button>
+        </div>
+        <div class="grid-2">
+          <label>
+            Name <span class="required">*</span>
+            <input type="text" data-field="name" required />
+          </label>
+          <label>
+            Email <span class="required">*</span>
+            <input type="email" data-field="email" required />
+          </label>
+        </div>
+      </article>
+    </template>
 
     <template id="version-template">
       <article class="version-card">
